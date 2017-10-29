@@ -1,0 +1,131 @@
+FORMAT: 1A
+HOST: http://amazon-ec2-instance-ip/
+# SeeFoodAPI
+This is the restful architecture of the API. Goal is for the client and server to make a only through request and responses through a single interface.
+
+## Request For Image Evaluation [/ImageEvaluation]
+### Image Evaluation [POST]
+
+Image evaluation Request for an image or images to be evaluated.
+Upon completion of evaluation each image name, extension type, food Boolean value, and integers score is sent back to the client.
+Note if the system cannot evaluate a image it will respond with a 202 and error message.
+
+        + Request (application/json)
+        [
+            {
+                "name": "IMG_0158",
+                "type": "png",
+                "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32..."
+            },
+            {
+                "name": "IMG_1137",
+                "type": "JPG",
+                "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32..."
+            }
+        ]
+
+
+
++ Response 201 (application/json)
+
+        [
+           {   
+                    "name": "IMG_0158",
+                    "type": "png",
+                    "food_boolean": 1,
+                    "score_int": 95
+                },
+                {
+                    "name": "IMG_1137",
+                    "type": "JPG",
+                    "food_boolean": 0,
+                    "score_int": 50
+                }
+        ]
+
++ Response 202 (application/json)
+
+        [
+           {   
+                    "name": "IMG_0158",
+                    "type": "png",
+                    "errorMessage": "The System could not Evaluate this file type",
+                    "score_int": 95
+                }
+        ]
+## Request List of Thumbnail [/localGallery]        
+###  Local Gallery Thumbnail Request [GET]
+
+Request a list of Thumbnails and their scores from the server DB, 
+limited to a specific number of results.
+
++ Request (application/json)
+
+        {
+            "page": 1,
+            "limit": 12
+        }
+
++ Response 200 (application/json)
+
+        [
+            {
+                "name": "IMG_0158",
+                "type": "png",
+                "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32...",
+                "evaluatedDate": "2016-09-05T08:40:51.620Z",
+                "food_boolean": 0,
+                "score_int": 49
+            },
+            {
+                "name": "IMG_0188",
+                "type": "png",
+                "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32...",
+                "evaluatedDate": "2016-08-05T08:40:51.620Z",
+                "food_boolean": 1,
+                "score_int": 90
+            },
+        ]
+
+## Request Full Size Image  [/fullSizedImage]        
+###  Full Sized Image Request [GET]
+
+The client request a full size image.
+
++ Request (application/json)
+
+        {
+            "name": "IMG_0188" ,
+            "type": "JPG",
+        }
+        
++ Response 201 (application/json)
+
+        [
+            {
+                "name": "IMG_0188",
+                "type": "png",
+                "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32..."
+                "food_boolean": 1,
+                "score_int": 95
+  
+            }
+        ]
+        
+
+## Request Status  [/isServerOnline]        
+###  IsServer Online Request [GET]
+This is used during the startup process of the client to verify that the server is in a ready state.
++ Request (application/json)
+
+        {
+           
+        }
+        
++ Response 503 (application/json)
+
+        [
+            {
+                "boolean": 0
+            }
+        ]
