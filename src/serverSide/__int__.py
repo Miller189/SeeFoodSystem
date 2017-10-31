@@ -289,6 +289,20 @@ source/backend/apache2-config/000-default.conf
 
 
 
+<VirtualHost *>
+    ServerName example.com
+
+    WSGIDaemonProcess seefood user=www-server group=www-server threads=5
+    WSGIScriptAlias / /var/www/seefoodWSGI/fooddroid.wsgi
+
+    <Directory /var/www/seefoodWSGI>
+        WSGIProcessGroup seefoodWSGI
+        WSGIApplicationGroup %{GLOBAL}
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+
 source/backend/application.py
 +from flask import Flask
 +app = Flask(__name__)
@@ -355,7 +369,7 @@ idea/vcs.xml
 
 000-default.conf
 
-<VirtualHost *>000-default.conf
+<VirtualHost *>
 
     ServerName example.com
 
@@ -453,6 +467,9 @@ NOTE: The binary data of the images will not be returned for efficiency.
                 }
 ]
 
+
+
+You may now add content to the directory /var/www/html/. Note that until you do so, people visiting your website will see this page, and not your content. To prevent this page from ever being used, follow the instructions in the file /etc/httpd/conf.d/welcome.conf.
 
 
 
