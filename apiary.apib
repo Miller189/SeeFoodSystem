@@ -10,9 +10,9 @@ Image evaluation Request for an image or images to be evaluated.
 Upon completion of evaluation each image name, extension type, food Boolean value, and integers score is sent back to the client.
 Note if the system cannot evaluate a image it will respond with a 202 and error message.
 
-+ Request (application/json
++ Request (application/json)
 
-        [
+       } "required": ["id", "name", "price"] 
             {
                 "name": "IMG_0158",
                 "type": "png",
@@ -22,9 +22,10 @@ Note if the system cannot evaluate a image it will respond with a 202 and error 
                 "name": "IMG_1137",
                 "type": "JPG",
                 "data": "AB00234AFDFDAD2002340F0011000000100100011AE324FFAD32..."
-            }
-        ]
-
+            },
+        }
+   
+       
 
 
 + Response 201 (application/json)
