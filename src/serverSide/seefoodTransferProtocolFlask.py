@@ -18,8 +18,6 @@ This method takes a file name and parses out the file extension.
 If the file extension is in theAllowed_Extensions the system returns true
 Otherwise it returns false
 """
-
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -36,8 +34,6 @@ Each File is converted to a image and every image gets sent to the API system fo
 The API returns a score for each image
 Then this method creates a JSON  dump of the score and image metadata
 """
-
-
 @app.route('/evaluation', methods=['POST'])
 def image_evaluation():
     dumpFile = list()
@@ -56,11 +52,18 @@ def image_evaluation():
                 file_name = Datafile.filename
                 file_score = load_model(tensorImage) # file_score holds a list.  May want to change based off of client (not Yet)
                 food_boolean = is_food(file_score)
+                # add list item to dumpFile
                 dumpFile.append(JSON_dumpEvaluation(file_name, file_score, food_boolean))
+        # endLoop
         json_string = json.dumps(dumpFile)
     return json_string
 
-
+"""
+Method      : JSON_dumpEvaluation
+Parameters  : file_name(string), file_score(list), food_boolean(boolean(1,0))
+Return      : list
+This method creates a list
+"""
 def JSON_dumpEvaluation(file_name, file_score, food_boolean):
     data = []
     data.append({
@@ -77,8 +80,6 @@ Parameters  : file_score(array like Input)
 Return      : Boolean
 This method sees if this file_score evaluates to having food or not having food
 """
-
-
 def is_food(file_score):
     if np.argmax(file_score) == 1:
         # No Food
@@ -96,8 +97,6 @@ Return      : base64Image
 This method is designed to receive a binary string and evaluate it to an image. 
 Not sure on how the client is going to send me the image
 """
-
-
 def create_image(image_data):
     return base64.decodestring(image_data)
 
@@ -109,8 +108,6 @@ Return      : image (in RGB)
 This method takes a file and converts it to an image.
 It also changes the file to RGB and resizes it to 227 227
 """
-
-
 def resolution_and_color_optimization(Datafile):
     image = Image.open(Datafile)
     image = image.convert('RGB')
