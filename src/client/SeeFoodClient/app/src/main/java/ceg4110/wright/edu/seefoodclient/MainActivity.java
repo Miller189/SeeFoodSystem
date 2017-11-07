@@ -7,10 +7,11 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity {
 
-    ViewPager pager;
     PagerAdapter adapter;
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -18,6 +19,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
+
+
+        Spinner dropdown = (Spinner)findViewById(R.id.spinner1);
+        //create a list of items for the spinner.
+        String[] items = new String[]{"1", "2", "three"};
+        ArrayAdapter<String> spinAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        dropdown.setAdapter(spinAdapter);
     }
 
     public void dispatchTakePictureIntent(View view) {
