@@ -36,13 +36,16 @@ public class MainActivity extends AppCompatActivity {
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
         ImageAdapter adapter = new ImageAdapter(this);
         pager.setAdapter(adapter);
+        pager.setCurrentItem(0);
 
         Spinner dropdown = (Spinner)findViewById(R.id.spinner1);
         //create a list of items for the spinner.
-        String[] items = new String[]{"1", "2", "three"};
+        String[] items = new String[]{"Browse Remote Gallery", "Exit SeeFood"};
         ArrayAdapter<String> spinAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
         dropdown.setAdapter(spinAdapter);
     }
+
+
 
     public void dispatchTakePictureIntent(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);

@@ -7,16 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-/**
- * Created by DJ on 11/16/2017.
- */
 
 public class ImageAdapter extends PagerAdapter {
     Context context;
     private int[] GalImages = new int[] {
-            R.drawable.one,
-            R.drawable.two,
-            R.drawable.three
+            0, 1, 2
     };
     ImageAdapter(Context context){
         this.context=context;
