@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SeeFood Client</string>
     <string name="take_photo">Take Photo</string>
-    <string name="access_gallery">Choose Image from Gallery</string>
+    <string name="access_gallery">Choose Image from Gallery</string>git
     <string name="remote_gallery">Browse Server Gallery</string>
     <string name="exit_app">Exit SeeFood App</string>
 </resources>

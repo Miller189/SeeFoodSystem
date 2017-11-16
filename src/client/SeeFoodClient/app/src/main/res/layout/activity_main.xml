@@ -56,8 +56,10 @@
 
     <Spinner
         android:id="@+id/spinner"
-        android:layout_width="383dp"
-        android:layout_height="39dp"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="1dp" />
+        android:layout_width="384dp"
+        android:layout_height="35dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/spinner1" />
 </android.support.constraint.ConstraintLayout>
