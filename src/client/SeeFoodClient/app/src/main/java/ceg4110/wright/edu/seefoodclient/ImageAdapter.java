@@ -27,14 +27,13 @@ public class ImageAdapter extends PagerAdapter {
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-        ImageView imageView = new ImageView(context);
-        //int padding = context.getResources().getDimensionPixelSize(R.dimen.app_icon_size);
-        //imageView.setPadding(padding, padding, padding, padding);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        imageView.setImageResource(GalImages[position]);
-        ((ViewPager) container).addView(imageView, 0);
-        return imageView;
+    public ImageView instantiateItem(ViewGroup container, int position) {
+        ImageView imageView1;
+        imageView1 = new ImageView(context);
+        imageView1.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        imageView1.setImageResource(GalImages[position]);
+        (container).addView(imageView1, 0);
+        return imageView1;
     }
 
     @Override

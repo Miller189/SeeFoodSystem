@@ -1,18 +1,22 @@
 package ceg4110.wright.edu.seefoodclient;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import java.io.File;
@@ -27,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
+    Context context;
+    ViewGroup layout;
+    ImageView imageView1;
+//    RequestQueue queue = Volley.newRequestQueue(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +42,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
-        ImageAdapter adapter = new ImageAdapter(this);
-        pager.setAdapter(adapter);
-        pager.setCurrentItem(0);
+//        ImageAdapter adapter = new ImageAdapter(context);
+//        pager.setAdapter(adapter);
+//        layout = new LinearLayout(this);
+//        imageView1 = adapter.instantiateItem(layout, 0);
+//        pager.addView(imageView1);
 
         Spinner dropdown = (Spinner)findViewById(R.id.spinner1);
         //create a list of items for the spinner.
-        String[] items = new String[]{"Browse Remote Gallery", "Exit SeeFood"};
+        String[] items = new String[]{getString(R.string.remote_gallery), getString(R.string.exit_app)};
         ArrayAdapter<String> spinAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
         dropdown.setAdapter(spinAdapter);
     }
@@ -61,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
+                Uri photoURI = FileProvider.getUriForFile(context,
                         "ceg4110.wright.edu.seefoodclient.android.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -87,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Message dialog for exception handling
-    private void messageBox(String method, String message)
+    protected void messageBox(String method, String message)
     {
         Log.d("EXCEPTION: " + method,  message);
 
