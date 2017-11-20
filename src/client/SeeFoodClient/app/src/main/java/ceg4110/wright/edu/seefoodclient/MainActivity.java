@@ -3,6 +3,9 @@ package ceg4110.wright.edu.seefoodclient;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Path;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,6 +22,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -34,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     ViewGroup layout;
     ImageView imageView1;
-//    RequestQueue queue = Volley.newRequestQueue(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +64,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void dispatchTakePictureIntent(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+
             // Create the File where the photo should go
             File photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
                 // Always use this format for error handling
-                messageBox("IOException", ex.getMessage());
+                errorMessage("IOException", ex.getMessage());
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
@@ -77,6 +84,21 @@ public class MainActivity extends AppCompatActivity {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
+        }
+
+        // Convert file to Bitmap
+        File f = new File(mCurrentPhotoPath);
+        String fPath = f.getPath();
+        Bitmap bitmap = BitmapFactory.decodeFile(fPath);
+
+        // Upload bitmap to server
+
+        try {
+            JSONObject result = ImageUploader.uploadImage(bitmap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -97,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Message dialog for exception handling
-    protected void messageBox(String method, String message)
+    protected void errorMessage(String method, String message)
     {
         Log.d("EXCEPTION: " + method,  message);
 
