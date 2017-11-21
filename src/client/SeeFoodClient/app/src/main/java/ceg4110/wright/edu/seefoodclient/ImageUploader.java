@@ -1,21 +1,30 @@
 package ceg4110.wright.edu.seefoodclient;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Base64;
+
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
 /**
  * Created by DJ on 11/18/2017.
@@ -23,50 +32,71 @@ import java.util.ArrayList;
 
 public class ImageUploader {
 
-    // The first method (int(Bitmap)) deals with single-image functionality.
-     public static JSONObject uploadImage(Bitmap imageFile) throws IOException, JSONException{
+    Context context;
+    String url = "http://34.237.62.217/evaluation";
 
-        URL url = new URL("http://34.237.62.217/evaluation");
-        byte[] imageBits;
-        JSONObject result;
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-        try {
-
-            urlConnection.setDoOutput(true);
-            urlConnection.setChunkedStreamingMode(0);
-
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-
-            BufferedReader streamReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-            StringBuilder responseStrBuilder = new StringBuilder();
-            imageBits = getByteArray(imageFile);
-
-            out.write(imageBits);
-
-            String inputStr;
-            while ((inputStr = streamReader.readLine()) != null)
-                responseStrBuilder.append(inputStr);
-            result = new JSONObject(responseStrBuilder.toString());
-
-        } finally {
-            urlConnection.disconnect();
-        }
-
-        return result;
+    public ImageUploader(File file){
+        super();
     }
 
-    // The second method (JSONObject[](ArrayList)) deals with multiple image functionality.
-    // Commented out until functionality is achieved with the first method
-//    public static JSONObject[] uploadImage (ArrayList imageList)throws IOException{
-//        URL url = new URL("http://34.237.62.217/evaluation");
+
+//     public JSONObject uploadImage(Bitmap imageFile) throws IOException, JSONException{
+//
+//         URL urlObject = new URL(this.url);
+//
+//         String filenameString;
+//
+//         Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024); // 1MB cap
+//         Network network = new BasicNetwork(new HurlStack());
+//         RequestQueue queue = new RequestQueue(cache, network);
+//         queue.start();
+//
+//         String encodedImage = getStringFromBitmap(imageFile);
+//         JSONObject jsonObj = new JSONObject("{\"image\":\" + encodedImage + \"}");
+//
+//         JsonObjectRequest jsObjRequest = new JsonObjectRequest
+//                 (Request.Method.GET, url, jsonObj, new Response.Listener<JSONObject>() {
+//                     @Override
+//                     public void onResponse(JSONObject response) {
+//
+//                         try {
+//                             String fileName = response.getString("filename");
+//                             Double imageScore = response.getDouble("file_score");
+//                             Boolean foodBoolean = response.getBoolean("food_boolean");//
+//                         } catch (JSONException e) {
+//                             e.printStackTrace();
+//                         }
+//                     }
+//                 }, new Response.ErrorListener() {
+//
+//                     @Override
+//                     public void onErrorResponse(VolleyError error) {
+//                         // TODO Auto-generated method stub
+//
+//                     }
+//                 });
+//
+//         return result;
 //    }
 
-    private static byte[] getByteArray (Bitmap image){
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        return stream.toByteArray();
+    // This converts the file object to its Base64 representation
+    // to facilitate JSON conversion.
+    private String base64File(File file)throws FileNotFoundException{
+        InputStream inputStream = new FileInputStream(file);
+        byte[] bytes;
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try {
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        bytes = output.toByteArray();
+        return Base64.encodeToString(bytes, Base64.DEFAULT);
     }
+
 
 }

@@ -3,27 +3,18 @@ package ceg4110.wright.edu.seefoodclient;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Path;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,13 +24,10 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    PagerAdapter adapter;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    ImageAdapter adapter;
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
     Context context;
-    ViewGroup layout;
-    ImageView imageView1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +35,31 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
-//        ImageAdapter adapter = new ImageAdapter(context);
-//        pager.setAdapter(adapter);
-//        layout = new LinearLayout(this);
-//        imageView1 = adapter.instantiateItem(layout, 0);
-//        pager.addView(imageView1);
+        pager.setAdapter(adapter);
 
-        Spinner dropdown = (Spinner)findViewById(R.id.spinner1);
-        //create a list of items for the spinner.
-        String[] items = new String[]{getString(R.string.remote_gallery), getString(R.string.exit_app)};
-        ArrayAdapter<String> spinAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
-        dropdown.setAdapter(spinAdapter);
+        ImageView startImage = new ImageView(this);
+        startImage.setImageResource(R.drawable.ic_launcher);
+        pager.addView(startImage);
+
+        Spinner dropdown = (Spinner)findViewById(R.id.spinner);
+
+        dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch(position){
+                    case 0: break;
+                    // Case 1 should implement "browse server gallery"
+                    case 1: break;
+                    case 2: System.exit(0);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
     }
 
 
@@ -73,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                // Always use this format for error handling
                 errorMessage("IOException", ex.getMessage());
             }
             // Continue only if the File was successfully created
@@ -86,20 +87,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Convert file to Bitmap
         File f = new File(mCurrentPhotoPath);
-        String fPath = f.getPath();
-        Bitmap bitmap = BitmapFactory.decodeFile(fPath);
 
-        // Upload bitmap to server
+        // Upload file, get JSONObject
+        // Send JSONObject to ImageAdapter for parsing
+        // ImageAdapter puts image into ViewPager
 
-        try {
-            JSONObject result = ImageUploader.uploadImage(bitmap);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     private File createImageFile() throws IOException {

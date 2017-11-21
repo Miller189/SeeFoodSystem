@@ -6,4 +6,9 @@
     <string name="exit_app">Exit SeeFood App</string>
     <string name="title_activity_login">Start Screen</string>
     <string name="action_sign_in">Sign In</string>
+    <string-array name="spinner_values">
+        <item>Additional Options</item>
+        <item>Browse Server Gallery</item>
+        <item>Exit SeeFood app</item>
+    </string-array>
 </resources>
