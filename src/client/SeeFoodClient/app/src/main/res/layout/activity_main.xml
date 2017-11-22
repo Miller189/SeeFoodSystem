@@ -7,7 +7,7 @@
     android:background="@color/black"
     tools:context="ceg4110.wright.edu.seefoodclient.MainActivity">
 
-    <android.support.v4.view.ViewPager
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/viewPager"
         android:layout_width="337dp"
         android:layout_height="252dp"

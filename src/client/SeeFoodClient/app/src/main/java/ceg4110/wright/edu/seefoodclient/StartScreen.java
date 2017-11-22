@@ -36,6 +36,8 @@ public class StartScreen extends AppCompatActivity{
         }
     }
 
+    // Constructs a Volley request and hucks it at the server.
+    // Upon response, waits 1 second and begins the MainActivity screen.
     public void pingServer()throws IOException, InterruptedException{
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
@@ -65,11 +67,15 @@ public class StartScreen extends AppCompatActivity{
         queue.add(stringRequest);
     }
 
+    // Overloaded method from before pingServer() worked.
+    // Use for testing and delete from final code, along with
+    // corresponding button from xml file.
     public void goToMain(View v){
         Intent i = new Intent(getApplicationContext(),MainActivity.class);
         startActivity(i);
     }
 
+    // Automatically called when pingServer() is successful.
     public void goToMain(){
         Intent i = new Intent(getApplicationContext(),MainActivity.class);
         startActivity(i);

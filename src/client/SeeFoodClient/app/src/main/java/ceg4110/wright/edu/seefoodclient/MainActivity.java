@@ -3,6 +3,7 @@ package ceg4110.wright.edu.seefoodclient;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+
 import android.widget.ImageView;
 import android.widget.Spinner;
 
@@ -28,18 +30,26 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
     Context context;
+    int pagerSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        adapter = new ImageAdapter();
 
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
 
+        // The process for inserting an image into the ViewPager:
+        // 1. Instantiate the ImageView
         ImageView startImage = new ImageView(this);
-        startImage.setImageResource(R.drawable.ic_launcher);
-        pager.addView(startImage);
+        // 2. Convert image to Drawable object
+        Drawable myIcon = getResources().getDrawable( R.drawable.ic_launcher );
+        // 3. call setImageDrawable on the ImageView
+        startImage.setImageDrawable(myIcon);
+        // 4. Add the view using the adapter's method
+        pagerSize = adapter.addView(startImage);
 
         Spinner dropdown = (Spinner)findViewById(R.id.spinner);
 
@@ -87,16 +97,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        File f = new File(mCurrentPhotoPath);
-
         // Upload file, get JSONObject
         // Send JSONObject to ImageAdapter for parsing
         // ImageAdapter puts image into ViewPager
+        // This may help: https://stackoverflow.com/questions/8642823/using-setimagedrawable-dynamically-to-set-image-in-an-imageview
 
     }
 
     private File createImageFile() throws IOException {
-        // Create an image file name
+        // Create image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -106,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 storageDir      /* directory */
         );
 
-        // Save a file: path for use with ACTION_VIEW intents
+        // Save a file in a global String variable: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }

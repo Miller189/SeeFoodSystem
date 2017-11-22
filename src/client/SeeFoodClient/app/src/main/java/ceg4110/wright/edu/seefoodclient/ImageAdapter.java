@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 
 public class ImageAdapter extends PagerAdapter {
+    // From https://stackoverflow.com/questions/13664155/dynamically-add-and-remove-view-to-viewpager
     // This holds all the currently displayable views, in order from left to right.
     private ArrayList<View> views = new ArrayList<>();
 
@@ -82,9 +83,11 @@ public class ImageAdapter extends PagerAdapter {
     // Add "view" at "position" to "views".
     // Returns position of new view.
     // The app should call this to add pages; not used by ViewPager.
+    // An error is thrown if notifyDataSetChanged() is not called.
     public int addView (View v, int position)
     {
         views.add (position, v);
+        notifyDataSetChanged();
         return position;
     }
 
