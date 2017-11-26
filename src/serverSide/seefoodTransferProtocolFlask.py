@@ -7,7 +7,7 @@ from ImageClass import ImageClass
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'jfif', 'gif'])
 app = Flask(__name__)
 
-modelObject = AIModel()
+#modelObject = AIModel()
 """
 Method      : allowed_file
 Parameters  : filename(string)
@@ -31,6 +31,7 @@ This method is used to ensure that the session model is running and the server i
 def start_screen():
     # 404 The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.
     # 201 The request has been fulfilled, resulting in the creation of a new resource
+    data = []
     message = ""
     code = 404
     if (modelObject == None):
@@ -38,7 +39,9 @@ def start_screen():
     else:
         message = "Session model was loaded successfully"
         code = 201
-    json_string = json.dumps(message)
+
+    data.append({'message': message})
+    json_string = json.dumps(data)
     return json_string , code
 
 """
@@ -70,16 +73,24 @@ def image_evaluation():
                 obj.set_foodBoolean(food_boolean)
 
 
-                #dumpFile.append(JSON_dumpEvaluation(file_name, file_score, food_boolean))
-                #dumpFile.append(JSON_dumpEvaluation(file_name, None, None))
-
+                dumpFile.append(JSON_dumpEvaluation(file_name, file_score, food_boolean))
         # endLoop
+                #dumpFile.append(JSON_dumpEvaluation(file_name, None, None))
+    else:
+        return json.dumps({"error": "not file found"}), 404
+
+
     json_string = json.dumps(dumpFile)
     return json_string
 
-@app.route("/gallery")
-def get_gallery():
+@app.route("/gallery",  methods=['GET'])
+def gallery():
     return "Hello World!"
+
+
+@app.route("/full_size_image",  methods=['GET'])
+def get_full_sized_image():
+    return "Full size image!"
 
 """
 Method      : JSON_dumpEvaluation
@@ -98,3 +109,4 @@ def JSON_dumpEvaluation(file_name, file_score, food_boolean):
 if __name__ == "__main__":
    #modelObject.setModel(modelObject)
     app.run(debug=True)
+

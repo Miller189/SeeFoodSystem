@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import argparse
+import scoreMath
 #import tensorflow as tf
 from PIL import Image
 
@@ -46,13 +47,13 @@ class AIModel:
     """
        Method      : evaluation
        Parameters  : self, image
-       Return      : list
+       Return      : float
         This method takes an image and evaluates whether or not it contains food
     """
     def evaluation(self, image):
         tensorImage = [np.asarray(image, dtype=np.float32)]
         scores = self.sessionModel.run(self.class_scores, {self.x_input: tensorImage, self.keep_prob: 1.})
-        return scores.tolist()
+        return scoreMath.get_score_Percentage(scores.tolist())
 
     """
     Method      : is_food

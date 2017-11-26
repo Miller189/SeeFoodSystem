@@ -14,7 +14,6 @@ class ImageClass:
     def __init__(self, fileData):
         self.image = self.create_image_from_file(fileData)
         self.imageName = self.new_name_on_time(fileData.filename)
-        self.imageScore = None
         self.foodBoolean = None
         self.fullSizedImagePathName = ""
         self.thumbnailImagePathName = ""
