@@ -18,6 +18,9 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -27,6 +30,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     ImageAdapter adapter;
+    ImageUploader uploader;
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
     Context context;
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         adapter = new ImageAdapter();
+        context = getApplicationContext();
 
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
@@ -50,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
         startImage.setImageDrawable(myIcon);
         // 4. Add the view using the adapter's method
         pagerSize = adapter.addView(startImage);
+
+        // It might be worth looking into accessing the ImageUploader statically
+        // I just did it this way to make it easier on myself
+        uploader = new ImageUploader();
 
         Spinner dropdown = (Spinner)findViewById(R.id.spinner);
 
@@ -98,6 +107,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Upload file, get JSONObject
+        File imageFile = new File(mCurrentPhotoPath);
+        JSONObject score = new JSONObject();
+        try {
+            score = uploader.uploadImage(imageFile, context);
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
         // Send JSONObject to ImageAdapter for parsing
         // ImageAdapter puts image into ViewPager
         // This may help: https://stackoverflow.com/questions/8642823/using-setimagedrawable-dynamically-to-set-image-in-an-imageview

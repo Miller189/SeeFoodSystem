@@ -1,17 +1,15 @@
 package ceg4110.wright.edu.seefoodclient;
 
-import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import java.util.ArrayList;
 
 
 public class ImageAdapter extends PagerAdapter {
-    // From https://stackoverflow.com/questions/13664155/dynamically-add-and-remove-view-to-viewpager
+    // Shamelessly copied from https://stackoverflow.com/questions/13664155/dynamically-add-and-remove-view-to-viewpager
     // This holds all the currently displayable views, in order from left to right.
     private ArrayList<View> views = new ArrayList<>();
 
