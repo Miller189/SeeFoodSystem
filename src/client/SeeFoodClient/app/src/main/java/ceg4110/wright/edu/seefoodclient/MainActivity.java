@@ -2,6 +2,7 @@ package ceg4110.wright.edu.seefoodclient;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -18,6 +19,16 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -30,11 +41,11 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     ImageAdapter adapter;
-    ImageUploader uploader;
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
     Context context;
     int pagerSize;
+    Boolean pictureTaken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +68,6 @@ public class MainActivity extends AppCompatActivity {
         // 4. Add the view using the adapter's method
         pagerSize = adapter.addView(startImage);
 
-        // It might be worth looking into accessing the ImageUploader statically
-        // I just did it this way to make it easier on myself
-        uploader = new ImageUploader();
 
         Spinner dropdown = (Spinner)findViewById(R.id.spinner);
 
@@ -104,39 +112,25 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
+    }
 
-        // Upload file, get JSONObject
-        File imageFile = new File(mCurrentPhotoPath);
-        Drawable imageDrawable = Drawable.createFromPath(mCurrentPhotoPath);
-        JSONProcessor processor = new JSONProcessor(imageDrawable, context);
-        JSONObject score = new JSONObject();
-        try {
-            score = uploader.uploadImage(imageFile, context);
-        } catch (IOException | JSONException e) {
-            errorMessage("Exception", e.getMessage());
-            e.printStackTrace();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == REQUEST_TAKE_PHOTO) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                File imageFile = new File(mCurrentPhotoPath);
+
+                try {
+                    uploadImage(imageFile, context);
+                } catch (IOException | JSONException e) {
+                    errorMessage("Exception", e.getMessage());
+                    e.printStackTrace();
+                }
+
+            }
         }
-        try {
-            ImageView image = processor.processJSONData(score);
-        } catch (JSONException e) {
-            errorMessage("JSONException", e.getMessage());
-            e.printStackTrace();
-        }
-
-        // Score is now the JSONObject with our response data
-        // This code will be used for parsing:
-        // String fileName = score.getString("filename");
-        // Double imageScore = score.getDouble("file_score");
-        // Boolean foodBoolean = score.getBoolean("food_boolean");
-
-        // Need to interpret these into an array of layers and call a LayerDrawable constructor
-        // https://stackoverflow.com/questions/4312062/create-a-layerdrawable-object-programatically
-        // https://android.jlelse.eu/simplifying-layouts-with-layer-list-drawables-2f750ea1504e
-
-        // Send result values and image to ImageAdapter for parsing
-        // ImageAdapter puts image and data into ViewPager
-        // This may help: https://stackoverflow.com/questions/8642823/using-setimagedrawable-dynamically-to-set-image-in-an-imageview
-
     }
 
     private File createImageFile() throws IOException {
@@ -149,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
         // Save a file in a global String variable: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
@@ -166,5 +159,56 @@ public class MainActivity extends AppCompatActivity {
         messageBox.setCancelable(false);
         messageBox.setNeutralButton("OK", null);
         messageBox.show();
+    }
+
+    void uploadImage(final File imageFile, final Context context) throws IOException, JSONException{
+        final String url;
+        url = "http://34.237.62.217/evaluation";
+        Drawable imageDrawable = Drawable.createFromPath(mCurrentPhotoPath);
+        final JSONProcessor processor = new JSONProcessor(imageDrawable, context);
+        final ImageView[] image = {new ImageView(context)};
+        final JSONObject[] result;
+        result = new JSONObject[1];
+
+        Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024); // 1MB cap
+        Network network = new BasicNetwork(new HurlStack());
+        RequestQueue queue = new RequestQueue(cache, network);
+        queue.start();
+
+        @SuppressWarnings("unchecked")
+        Request jsObjRequest = new ImageUploadWithVolley(url, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                AlertDialog.Builder messageBox = new AlertDialog.Builder(context);
+                messageBox.setTitle("Error");
+                messageBox.setMessage("SeeFood has errored and will now exit.");
+                messageBox.setCancelable(false);
+                messageBox.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.exit(0);
+                    }
+                });
+                messageBox.show();
+                System.exit(0);
+            }
+        }, new Response.Listener() {
+            @Override
+            public void onResponse(Object response) {
+                result[0] = (JSONObject)response;
+                try {
+                    image[0] = processor.processJSONData(result[0]);
+                } catch (JSONException e) {
+                    errorMessage("JSONException", e.getMessage());
+                    e.printStackTrace();
+                }
+                pagerSize = adapter.addView(image[0]);
+
+            }
+
+        }, imageFile);
+
+        queue.add(jsObjRequest);
+
     }
 }

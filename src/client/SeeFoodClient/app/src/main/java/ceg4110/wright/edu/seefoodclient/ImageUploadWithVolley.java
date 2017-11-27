@@ -56,6 +56,7 @@ public class ImageUploadWithVolley<JSONObject> extends Request<JSONObject> {
         mBuilder.addBinaryBody("give your image name", yourImageFile, ContentType.create("image/jpeg"), yourImageFile.getName());
         mBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
         mBuilder.setLaxMode().setBoundary("xx").setCharset(Charset.forName("UTF-8"));
+
     }
 
     @Override
