@@ -1,11 +1,8 @@
 from PIL import Image
-import json
 import base64
 import os
-import argparse
 import time
-import sys
-
+import scoreMath
 """
 Class      : ImageClass
 This class starts the session tensorflow model and runs the session
@@ -15,6 +12,7 @@ class ImageClass:
         self.image = self.create_image_from_file(fileData)
         self.imageName = self.new_name_on_time(fileData.filename)
         self.foodBoolean = None
+        self.imageScore = None
         self.fullSizedImagePathName = ""
         self.thumbnailImagePathName = ""
         self.save_full_size_image()
@@ -120,7 +118,7 @@ class ImageClass:
         return self.foodBoolean
 
     def set_imageScore(self, score):
-        self.imageScore = score
+        self.imageScore = scoreMath.get_score_Percentage(score)
 
     def set_foodBoolean(self, booleanValue):
         self.foodBoolean = booleanValue

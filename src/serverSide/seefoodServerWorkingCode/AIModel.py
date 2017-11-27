@@ -1,16 +1,12 @@
-import os
 import numpy as np
-import argparse
-import scoreMath
-#import tensorflow as tf
-from PIL import Image
+import tensorflow as tf
+
 
 """
 Class      : AIModel
 This class starts the session tensorflow model and runs the session
 """
 class AIModel:
-
     def __init__(self, ):
         self.sessionModel = None
         self.x_input = None
@@ -53,7 +49,7 @@ class AIModel:
     def evaluation(self, image):
         tensorImage = [np.asarray(image, dtype=np.float32)]
         scores = self.sessionModel.run(self.class_scores, {self.x_input: tensorImage, self.keep_prob: 1.})
-        return scoreMath.get_score_Percentage(scores.tolist())
+        return scores.tolist()
 
     """
     Method      : is_food

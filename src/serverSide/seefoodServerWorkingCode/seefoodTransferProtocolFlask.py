@@ -58,28 +58,27 @@ def image_evaluation():
         manyFiles = request.files.getlist("file")
         for item in manyFiles:
             Datafile = item
-
             if Datafile.filename == '':
-                return "error!"
+                return json.dumps({"error": "Images does not have an Name"}), 404
             if Datafile and allowed_file(Datafile.filename):
                 obj = ImageClass(Datafile)
                 file_name = obj.get_imageName()
-                #score
-                file_score = modelObject.evaluation(obj.get_image())
-                obj.set_imageScore(file_score)
 
+                #list score
+                listScore = modelObject.evaluation(obj.get_image())
+                obj.set_imageScore(listScore)
+                scorePercentage = obj.get_imageScore()
                 #is food
-                food_boolean = modelObject.is_food(obj.get_imageScore())
+                food_boolean = modelObject.is_food(listScore)
                 obj.set_foodBoolean(food_boolean)
 
-
-                dumpFile.append(JSON_dumpEvaluation(file_name, file_score, food_boolean))
+                dumpFile.append(JSON_dumpEvaluation(file_name, scorePercentage, food_boolean))
+            else:
+                return json.dumps({"error": Datafile.filename + ": Is not a valid image extension"}), 404
         # endLoop
-                #dumpFile.append(JSON_dumpEvaluation(file_name, None, None))
+
     else:
         return json.dumps({"error": "not file found"}), 404
-
-
     json_string = json.dumps(dumpFile)
     return json_string
 
