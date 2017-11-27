@@ -39,9 +39,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = getApplicationContext();
         setContentView(R.layout.activity_main);
         adapter = new ImageAdapter();
-        context = getApplicationContext();
+
 
         ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
@@ -81,8 +82,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     public void dispatchTakePictureIntent(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -108,15 +107,34 @@ public class MainActivity extends AppCompatActivity {
 
         // Upload file, get JSONObject
         File imageFile = new File(mCurrentPhotoPath);
+        Drawable imageDrawable = Drawable.createFromPath(mCurrentPhotoPath);
+        JSONProcessor processor = new JSONProcessor(imageDrawable, context);
         JSONObject score = new JSONObject();
         try {
             score = uploader.uploadImage(imageFile, context);
         } catch (IOException | JSONException e) {
+            errorMessage("Exception", e.getMessage());
+            e.printStackTrace();
+        }
+        try {
+            ImageView image = processor.processJSONData(score);
+        } catch (JSONException e) {
+            errorMessage("JSONException", e.getMessage());
             e.printStackTrace();
         }
 
-        // Send JSONObject to ImageAdapter for parsing
-        // ImageAdapter puts image into ViewPager
+        // Score is now the JSONObject with our response data
+        // This code will be used for parsing:
+        // String fileName = score.getString("filename");
+        // Double imageScore = score.getDouble("file_score");
+        // Boolean foodBoolean = score.getBoolean("food_boolean");
+
+        // Need to interpret these into an array of layers and call a LayerDrawable constructor
+        // https://stackoverflow.com/questions/4312062/create-a-layerdrawable-object-programatically
+        // https://android.jlelse.eu/simplifying-layouts-with-layer-list-drawables-2f750ea1504e
+
+        // Send result values and image to ImageAdapter for parsing
+        // ImageAdapter puts image and data into ViewPager
         // This may help: https://stackoverflow.com/questions/8642823/using-setimagedrawable-dynamically-to-set-image-in-an-imageview
 
     }

@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 
 
+
+
 public class ImageAdapter extends PagerAdapter {
     // Shamelessly copied from https://stackoverflow.com/questions/13664155/dynamically-add-and-remove-view-to-viewpager
     // This holds all the currently displayable views, in order from left to right.
