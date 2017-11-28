@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, json, send_file, jsonify, redirect, url_for
+import base64
 import numpy as np
 from AIModel import AIModel
 from ImageClass import ImageClass
@@ -7,7 +8,7 @@ import scoreMath
 from SeeFoodDB import SeeFoodDB
 import BaseHTTPServer
 from PIL import Image
-from io import BytesIO
+import io
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'jfif', 'gif'])
 app = Flask(__name__)
@@ -91,7 +92,7 @@ def image_evaluation():
                 return json.dumps({"error": "Images does not have an Name"}), 404
             if Datafile and allowed_file(Datafile.filename):
                 obj = ImageClass(Datafile)
-                file_name = obj.get_imageName()
+                file_name = obj.get_imageName() + ".png"
 
                 #list score
                 listScore = modelObject.evaluation(obj.get_image())
@@ -118,11 +119,10 @@ def image_evaluation():
 @app.route("/gallery",  methods=['GET'])
 def gallery():
     # extracts
-    jsonList = json.loads(request.data)
-    count = jsonList['limit']
-
+    count = request.args.get('limit')
     objDB = SeeFoodDB()
-    results =  objDB.gallery_read(count)
+    dumpFile = list()
+    results = objDB.gallery_read(count)
     if  results == False:
         print "Errrpr in getting data"
     else:
@@ -133,11 +133,8 @@ def gallery():
             thumbImgPath = row[3];
             isFood = row[4]
             score = row[5]
+            dumpFile.append(JSON_dump_gallery(row[0],row[1],row[3],row[4],row[5]))
 
-            byte_io = BytesIO()
-            image = Image.open(thumbImgPath)
-
-            JSON_dump_gallery(row[0],row[1],row[2],row[3],row[4],row[5])
 
     # import shutil
     # BaseHTTPServer.send_response(200)
@@ -146,7 +143,7 @@ def gallery():
     # with open(content_path, 'rb') as content:
     #     shutil.copyfileobj(content, self.wfile)
     # objDB.close_database_connection()
-    return "Hello World!"
+    return json.dumps(dumpFile), 200
 
 
 
@@ -191,12 +188,17 @@ Parameters  : imgID, imgName, fullSzImgPath, thumbImgPath, isFood, score
 Return      : list
 This method creates a list
 """
-def JSON_dump_gallery(imgID, imgName, image, isFood, score):
+def JSON_dump_gallery(imgID, imgName, imagePath, isFood, score):
+    byeOfImageArray = io.BytesIO()
+    image = Image.open(imagePath)
+    image.save(byeOfImageArray, format="PNG")
+    ImagebyeArrayData = byeOfImageArray.getvalue()
+    imageData = base64.b64encode(ImagebyeArrayData)
     data = []
     data.append({
         'file_name': imgID,
         'file_ID': imgName,
-        'file_path_full_size_Image': image,
+        'data': imageData,
         'food_boolean': isFood,
         'file_score': score
     })

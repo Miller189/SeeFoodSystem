@@ -340,15 +340,17 @@ class SeeFoodDB:
         else:
             offset = GalImgCount_tbl.read_gallery_image_counter(self.get_dbcon(),self)
 
+
         totalrecord = self.record_count("ImgData_tbl")
 
         if offset < totalrecord:
 
-            return self.print_by_number_of_records(offset, count)
+            results =  self.print_by_number_of_records(offset, count)
 
         else:
             offset = 0
-            return self.print_by_number_of_records(offset, count)
+            results = self.print_by_number_of_records(offset, count)
 
         offset += count
         GalImgCount_tbl.insert_count_gallery_img(self.get_dbcon(), offset, self)
+        return results

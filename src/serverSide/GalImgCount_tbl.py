@@ -73,12 +73,10 @@ def read_gallery_image_counter(dbcon,obj):
         # Execute the SQL command
         #print "inside try"
         dbcur.execute(sql)
-        results = dbcur.fetchall()
+        result = dbcur.fetchone()
         dbcur.close()
-        for row in results:
-            LastRecID = int (row[0])
-            return LastRecID
-
+        return result
+    #TypeError as e
     except:
         # disconnect from server
         dbcur.close()

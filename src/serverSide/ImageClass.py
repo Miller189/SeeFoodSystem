@@ -28,7 +28,7 @@ class ImageClass:
         fileBaseName = os.path.basename(oldName)
         currentTimeObjectMade = time.strftime("%Y%m%d-%H%M%S")
         fileBaseNameNoEx = os.path.splitext(fileBaseName)[0]
-        return (fileBaseNameNoEx + "-" + currentTimeObjectMade)
+        return (fileBaseNameNoEx + "-" + currentTimeObjectMade )
 
     """
        Method      : create_image_from_base64
@@ -59,9 +59,12 @@ class ImageClass:
     """
 
     def create_image_from_file(self, fileData):
-        image = Image.open(fileData)
-        image = image.convert('RGB')
-        return image.resize((227, 227), Image.BILINEAR)
+        try:
+            image = Image.open(fileData)
+            image = image.convert('RGB')
+            return image.resize((227, 227), Image.BILINEAR)
+        except IOError:
+            pass
 
     """
         Method      : save_full_size_image
