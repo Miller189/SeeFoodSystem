@@ -34,7 +34,7 @@ class JSONProcessor {
 
     ImageView processJSONData(JSONObject input) throws JSONException {
 
-        String fileName = input.getString("filename");
+        String fileName = input.getString("file_name");
         Double imageScore = input.getDouble("file_score");
         Boolean foodBoolean = input.getBoolean("food_boolean");
 

@@ -2,10 +2,10 @@ package ceg4110.wright.edu.seefoodclient;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -15,19 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-
 import android.widget.ImageView;
 import android.widget.Spinner;
-
-import com.android.volley.Cache;
-import com.android.volley.Network;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +27,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+
 public class MainActivity extends AppCompatActivity {
 
     ImageAdapter adapter;
@@ -45,7 +38,11 @@ public class MainActivity extends AppCompatActivity {
     String mCurrentPhotoPath;
     Context context;
     int pagerSize;
-    Boolean pictureTaken;
+    OkHttpClient client;
+    JSONProcessor processor;
+    JSONObject obj = null;
+    ImageView view;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,30 +52,33 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ImageAdapter();
 
 
-        ViewPager pager = (ViewPager)findViewById(R.id.viewPager);
+        ViewPager pager = (ViewPager) findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
 
         // The process for inserting an image into the ViewPager:
         // 1. Instantiate the ImageView
         ImageView startImage = new ImageView(this);
         // 2. Convert image to Drawable object
-        Drawable myIcon = getResources().getDrawable( R.drawable.ic_launcher );
+        Drawable myIcon = getResources().getDrawable(R.drawable.ic_launcher);
         // 3. call setImageDrawable on the ImageView
         startImage.setImageDrawable(myIcon);
         // 4. Add the view using the adapter's method
         pagerSize = adapter.addView(startImage);
 
 
-        Spinner dropdown = (Spinner)findViewById(R.id.spinner);
+        Spinner dropdown = (Spinner) findViewById(R.id.spinner);
 
         dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                switch(position){
-                    case 0: break;
+                switch (position) {
+                    case 0:
+                        break;
                     // Case 1 should implement "browse server gallery"
-                    case 1: break;
-                    case 2: System.exit(0);
+                    case 1:
+                        break;
+                    case 2:
+                        System.exit(0);
                 }
             }
 
@@ -121,13 +121,16 @@ public class MainActivity extends AppCompatActivity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 File imageFile = new File(mCurrentPhotoPath);
+                view = null;
 
                 try {
-                    uploadImage(imageFile, context);
-                } catch (IOException | JSONException e) {
-                    errorMessage("Exception", e.getMessage());
+                    uploadImage(imageFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                
 
             }
         }
@@ -149,9 +152,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Message dialog for exception handling
-    protected void errorMessage(String method, String message)
-    {
-        Log.d("EXCEPTION: " + method,  message);
+    protected void errorMessage(String method, String message) {
+        Log.d("EXCEPTION: " + method, message);
 
         AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
         messageBox.setTitle(method);
@@ -161,54 +163,73 @@ public class MainActivity extends AppCompatActivity {
         messageBox.show();
     }
 
-    void uploadImage(final File imageFile, final Context context) throws IOException, JSONException{
-        final String url;
-        url = "http://34.237.62.217/evaluation";
-        Drawable imageDrawable = Drawable.createFromPath(mCurrentPhotoPath);
-        final JSONProcessor processor = new JSONProcessor(imageDrawable, context);
-        final ImageView[] image = {new ImageView(context)};
-        final JSONObject[] result;
-        result = new JSONObject[1];
 
-        Cache cache = new DiskBasedCache(context.getCacheDir(), 1024 * 1024); // 1MB cap
-        Network network = new BasicNetwork(new HurlStack());
-        RequestQueue queue = new RequestQueue(cache, network);
-        queue.start();
+    private void uploadImage(File imageFile) throws IOException, JSONException {
 
-        @SuppressWarnings("unchecked")
-        Request jsObjRequest = new ImageUploadWithVolley(url, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                AlertDialog.Builder messageBox = new AlertDialog.Builder(context);
-                messageBox.setTitle("Error");
-                messageBox.setMessage("SeeFood has errored and will now exit.");
-                messageBox.setCancelable(false);
-                messageBox.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        System.exit(0);
-                    }
-                });
-                messageBox.show();
-                System.exit(0);
+        MediaType mediaType = MediaType.parse("image/jpeg");
+        OkHttpHandler handler = new OkHttpHandler(mediaType, imageFile);
+
+        handler.execute();
+    }
+
+    private class OkHttpHandler extends AsyncTask<Void, Void, Void> {
+
+        MediaType mediaType;
+        File imageFile;
+        okhttp3.Response response;
+        String json;
+
+        OkHttpHandler(MediaType newType, File newFile) {
+            super();
+            mediaType = newType;
+            imageFile = newFile;
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            client = new OkHttpClient();
+            RequestBody body = RequestBody.create(mediaType, imageFile);
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url("http://34.237.62.217/evaluation")
+                    .post(body)
+                    .addHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
+                    .addHeader("cache-control", "no-cache")
+                    .build();
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, new Response.Listener() {
-            @Override
-            public void onResponse(Object response) {
-                result[0] = (JSONObject)response;
-                try {
-                    image[0] = processor.processJSONData(result[0]);
-                } catch (JSONException e) {
-                    errorMessage("JSONException", e.getMessage());
-                    e.printStackTrace();
-                }
-                pagerSize = adapter.addView(image[0]);
+            return null;
+        }
 
+        @Override
+        protected void onPostExecute(Void v) {
+            try {
+                json = response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                obj = new JSONObject(json);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
 
-        }, imageFile);
+            Drawable imageDrawable = Drawable.createFromPath(imageFile.getAbsolutePath());
+            processor = new JSONProcessor(imageDrawable, context);
+            try {
+                view = processor.processJSONData(obj);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            pagerSize = adapter.addView(view);
 
-        queue.add(jsObjRequest);
+        }
 
     }
 }
+
+
+
