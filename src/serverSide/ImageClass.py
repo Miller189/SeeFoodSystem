@@ -2,7 +2,7 @@ from PIL import Image
 import base64
 import os
 import time
-import scoreMath
+
 """
 Class      : ImageClass
 This class starts the session tensorflow model and runs the session
@@ -101,7 +101,7 @@ class ImageClass:
         image.thumbnail(size)
         self.save_thumbnail(image)
 
-    #saveDataMySql
+
     """
         Method      : Getter and setters
     """
@@ -117,8 +117,8 @@ class ImageClass:
     def get_foodBoolean(self):
         return self.foodBoolean
 
-    def set_imageScore(self, score):
-        self.imageScore = scoreMath.get_score_Percentage(score)
+    def set_imageScore(self,score):
+        self.imageScore = score
 
     def set_foodBoolean(self, booleanValue):
         self.foodBoolean = booleanValue

@@ -3,11 +3,39 @@ from flask import Flask, request, json, jsonify, redirect, url_for
 import numpy as np
 from AIModel import AIModel
 from ImageClass import ImageClass
+import scoreMath
+from SeeFoodDB import SeeFoodDB
+
+
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'jfif', 'gif'])
 app = Flask(__name__)
 
-#modelObject = AIModel()
+modelObject = AIModel()
+
+
+"""
+Method      : insert_DB
+Parameters  : imageName, fullSzImgPath, thumbSzImgPath, isFood, score
+Return      : Boolean
+This method add image data to the db
+"""
+def insert_DB(imageName, fullSzImgPath, thumbSzImgPath, isFood, score):
+    objDB = SeeFoodDB()
+    dataImage = [imageName, fullSzImgPath, thumbSzImgPath, isFood, score]
+    if objDB.create_table():
+        if objDB.insert_image_data(dataImage):
+            objDB.close_database_connection()
+            return True
+        else:
+            objDB.close_database_connection()
+            return False
+    else:
+        objDB.close_database_connection()
+        return False
+
+
+
 """
 Method      : allowed_file
 Parameters  : filename(string)
@@ -66,13 +94,15 @@ def image_evaluation():
 
                 #list score
                 listScore = modelObject.evaluation(obj.get_image())
-                obj.set_imageScore(listScore)
-                scorePercentage = obj.get_imageScore()
+                scorePercentage = scoreMath.get_score_Percentage(listScore)
+                obj.set_imageScore(scorePercentage)
+
                 #is food
                 food_boolean = modelObject.is_food(listScore)
                 obj.set_foodBoolean(food_boolean)
 
                 dumpFile.append(JSON_dumpEvaluation(file_name, scorePercentage, food_boolean))
+                insert_DB(obj.get_imageName(),obj.get_fullSizedImagePathName(), obj.get_thumbnailImagePathName(),obj.get_foodBoolean(),obj.get_imageScore())
             else:
                 return json.dumps({"error": Datafile.filename + ": Is not a valid image extension"}), 404
         # endLoop
@@ -81,6 +111,7 @@ def image_evaluation():
         return json.dumps({"error": "not file found"}), 404
     json_string = json.dumps(dumpFile)
     return json_string
+
 
 @app.route("/gallery",  methods=['GET'])
 def gallery():
@@ -106,6 +137,5 @@ def JSON_dumpEvaluation(file_name, file_score, food_boolean):
     return data
 
 if __name__ == "__main__":
-   #modelObject.setModel(modelObject)
-    app.run(debug=True)
+    app.run(threaded=True)
 
