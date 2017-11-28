@@ -7,7 +7,7 @@ Class      : AIModel
 This class starts the session tensorflow model and runs the session
 """
 class AIModel:
-    def __init__(self, ):
+    def __init__(self):
         self.sessionModel = None
         self.x_input = None
         self.keep_prob = None
@@ -43,7 +43,7 @@ class AIModel:
     """
        Method      : evaluation
        Parameters  : self, image
-       Return      : float
+       Return      : list
         This method takes an image and evaluates whether or not it contains food
     """
     def evaluation(self, image):
