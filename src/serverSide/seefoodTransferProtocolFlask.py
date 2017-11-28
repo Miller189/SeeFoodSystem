@@ -1,12 +1,13 @@
 import os
-from flask import Flask, request, json, jsonify, redirect, url_for
+from flask import Flask, request, json, send_file, jsonify, redirect, url_for
 import numpy as np
 from AIModel import AIModel
 from ImageClass import ImageClass
 import scoreMath
 from SeeFoodDB import SeeFoodDB
-
-
+import BaseHTTPServer
+from PIL import Image
+from io import BytesIO
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'jfif', 'gif'])
 app = Flask(__name__)
@@ -102,7 +103,8 @@ def image_evaluation():
                 obj.set_foodBoolean(food_boolean)
 
                 dumpFile.append(JSON_dumpEvaluation(file_name, scorePercentage, food_boolean))
-                insert_DB(obj.get_imageName(),obj.get_fullSizedImagePathName(), obj.get_thumbnailImagePathName(),obj.get_foodBoolean(),obj.get_imageScore())
+                if insert_DB(obj.get_imageName(),obj.get_fullSizedImagePathName(), obj.get_thumbnailImagePathName(),obj.get_foodBoolean(),obj.get_imageScore()) == False:
+                    return json.dumps({"error": "Images could not me saved to Database"}), 404
             else:
                 return json.dumps({"error": Datafile.filename + ": Is not a valid image extension"}), 404
         # endLoop
@@ -115,12 +117,59 @@ def image_evaluation():
 
 @app.route("/gallery",  methods=['GET'])
 def gallery():
+    # extracts
+    jsonList = json.loads(request.data)
+    count = jsonList['limit']
+
+    objDB = SeeFoodDB()
+    results =  objDB.gallery_read(count)
+    if  results == False:
+        print "Errrpr in getting data"
+    else:
+        for row in results:
+            imgID = row[0]
+            imgName = row[1]
+            fullSzImgPath = row[2]
+            thumbImgPath = row[3];
+            isFood = row[4]
+            score = row[5]
+
+            byte_io = BytesIO()
+            image = Image.open(thumbImgPath)
+
+            JSON_dump_gallery(row[0],row[1],row[2],row[3],row[4],row[5])
+
+    # import shutil
+    # BaseHTTPServer.send_response(200)
+    # send_header('Content-type', 'image/jpeg')
+    # end_headers()
+    # with open(content_path, 'rb') as content:
+    #     shutil.copyfileobj(content, self.wfile)
+    # objDB.close_database_connection()
     return "Hello World!"
 
 
-@app.route("/full_size_image",  methods=['GET'])
+
+
+"""
+Method      : get_full_sized_image
+Parameters  : Image
+Return      : list
+This method creates a list
+"""
+@app.route("/full_size_image", methods=['GET'])
 def get_full_sized_image():
-    return "Full size image!"
+    # extracts
+    fileID = request.args.get('file_ID')
+    objDB = SeeFoodDB()
+    result = objDB.read_by_image_id(fileID)
+    if result == False:
+        return json.dumps({"error": "Could not find full size image"}), 404
+    else:
+        try:
+            return send_file(str(result[2]), attachment_filename=str(result[1]))
+        except Exception as e:
+            return str(e),  404
 
 """
 Method      : JSON_dumpEvaluation
@@ -134,6 +183,23 @@ def JSON_dumpEvaluation(file_name, file_score, food_boolean):
         'file_name': file_name,
         'file_score': file_score,
         'food_boolean': food_boolean})
+    return data
+
+"""
+Method      : JSON_dump_gallery
+Parameters  : imgID, imgName, fullSzImgPath, thumbImgPath, isFood, score
+Return      : list
+This method creates a list
+"""
+def JSON_dump_gallery(imgID, imgName, image, isFood, score):
+    data = []
+    data.append({
+        'file_name': imgID,
+        'file_ID': imgName,
+        'file_path_full_size_Image': image,
+        'food_boolean': isFood,
+        'file_score': score
+    })
     return data
 
 if __name__ == "__main__":

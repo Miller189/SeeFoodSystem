@@ -210,7 +210,7 @@ class SeeFoodDB:
     """
     def read_by_image_id(self, imageId):
         dbcur = self.initialize_cursor()
-        sql = "SELECT * FROM ImgData_tbl WHERE ImgId = '%d'" % (imageId)
+        sql = "SELECT * FROM ImgData_tbl WHERE ImgId = '%s'" % (imageId)
         try:
             # Execute the SQL command
             dbcur.execute(sql)
@@ -289,7 +289,7 @@ class SeeFoodDB:
     Not NEEDED
     Method      : print_by_number_of_records
     Parameters  : dbcon, offset, count
-    Return      : Boolean
+    Return      : Boolean and  results
     print record by specic offset and specific number of records
     """
 
@@ -305,19 +305,20 @@ class SeeFoodDB:
             dbcur.close()
             # Fetch all the rows in a list of lists.
             results = dbcur.fetchall()
-            for row in results:
-                ImgID = row[0]
-                ImgName = row[1]
-                FullSzImgPath = row[2]
-                ThumbSzImgPath = row[3];
-                IsFood = row[4]
-                Score = row[5]
+            return results
+            # for row in results:
+            #     ImgID = row[0]
+            #     ImgName = row[1]
+            #     FullSzImgPath = row[2]
+            #     ThumbSzImgPath = row[3];
+            #     IsFood = row[4]
+            #     Score = row[5]
+            #
+            #     # Now print fetched result
+            #     print "ImageID=%d,ImageName=%s,Full Size Image Path=%s,Thumbnail Image Path=%s, Is_Food=%s, Score=%f" % \
+            #           (ImgID, ImgName, FullSzImgPath, ThumbSzImgPath, IsFood, Score)
 
-                # Now print fetched result
-                print "ImageID=%d,ImageName=%s,Full Size Image Path=%s,Thumbnail Image Path=%s, Is_Food=%s, Score=%f" % \
-                      (ImgID, ImgName, FullSzImgPath, ThumbSzImgPath, IsFood, Score)
 
-            return True
         except:
             print "Error: unable to fecth data"
 
@@ -343,11 +344,11 @@ class SeeFoodDB:
 
         if offset < totalrecord:
 
-            self.print_by_number_of_records(offset, count)
+            return self.print_by_number_of_records(offset, count)
 
         else:
             offset = 0
-            self.print_by_number_of_records(offset, count)
+            return self.print_by_number_of_records(offset, count)
 
         offset += count
         GalImgCount_tbl.insert_count_gallery_img(self.get_dbcon(), offset, self)
