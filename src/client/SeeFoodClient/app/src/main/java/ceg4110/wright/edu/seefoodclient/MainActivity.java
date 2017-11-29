@@ -32,7 +32,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import okhttp3.Headers;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -179,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         File imageFile;
 
         okhttp3.Response response;
-        String json;
         JSONObject obj = null;
         JSONProcessor processor;
         @SuppressLint("StaticFieldLeak")
@@ -197,21 +198,16 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(Void... voids) {
             OkHttpClient client = new OkHttpClient();
 
-            String filePath = imageFile.getPath();
-            Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", imageFile.getName(),
+                            RequestBody.create(MediaType.parse("image/jpeg"), imageFile))
+                    .build();
 
-            // These methods are for experimenting with different upload types
-            String encodedFile = getStringFromBitmap(bitmap);
-            byte[] data = Base64.decode(encodedFile, Base64.DEFAULT);
-
-            RequestBody body = RequestBody.create(mediaType, imageFile);
-            //RequestBody body = RequestBody.create(mediaType, encodedFile);
             okhttp3.Request request = new okhttp3.Request.Builder()
                     .url("http://34.237.62.217/evaluation")
-                    .post(body)
+                    .post(requestBody)
                     .addHeader("content-type", "multipart/form-data")
-                    //.addHeader("content-type", "application/json")
-                    //.addHeader("cache-control", "no-cache")
                     .build();
             try {
                 response = client.newCall(request).execute();
@@ -242,20 +238,5 @@ public class MainActivity extends AppCompatActivity {
             }
             addImageView(view);
         }
-    }
-
-    private String getStringFromBitmap(Bitmap bitmapPicture) {
- /*
- * This functions converts Bitmap picture to a string which can be
- * JSONified.
- * */
-        final int COMPRESSION_QUALITY = 100;
-        String encodedImage;
-        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-        bitmapPicture.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
-                byteArrayBitmapStream);
-        byte[] b = byteArrayBitmapStream.toByteArray();
-        encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-        return encodedImage;
     }
 }
