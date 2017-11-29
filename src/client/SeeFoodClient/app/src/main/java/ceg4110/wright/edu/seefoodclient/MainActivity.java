@@ -1,5 +1,6 @@
 package ceg4110.wright.edu.seefoodclient;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,8 @@ import java.util.Locale;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,10 +41,7 @@ public class MainActivity extends AppCompatActivity {
     String mCurrentPhotoPath;
     Context context;
     int pagerSize;
-    OkHttpClient client;
-    JSONProcessor processor;
-    JSONObject obj = null;
-    ImageView view;
+    private Drawable[] layers;
 
 
     @Override
@@ -50,11 +50,9 @@ public class MainActivity extends AppCompatActivity {
         context = getApplicationContext();
         setContentView(R.layout.activity_main);
         adapter = new ImageAdapter();
-
-
+        layers = new Drawable[2];
         ViewPager pager = (ViewPager) findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
-
         // The process for inserting an image into the ViewPager:
         // 1. Instantiate the ImageView
         ImageView startImage = new ImageView(this);
@@ -63,11 +61,8 @@ public class MainActivity extends AppCompatActivity {
         // 3. call setImageDrawable on the ImageView
         startImage.setImageDrawable(myIcon);
         // 4. Add the view using the adapter's method
-        pagerSize = adapter.addView(startImage);
-
-
+        addImageView(startImage);
         Spinner dropdown = (Spinner) findViewById(R.id.spinner);
-
         dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -87,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     public void dispatchTakePictureIntent(View v) {
@@ -121,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 File imageFile = new File(mCurrentPhotoPath);
-                view = null;
 
                 try {
                     uploadImage(imageFile);
@@ -136,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // This creates and names the file pointer for use by the camera intent
     private File createImageFile() throws IOException {
         // Create image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
@@ -160,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         messageBox.setMessage(message);
         messageBox.setCancelable(false);
         messageBox.setNeutralButton("OK", null);
-        messageBox.show();
+        messageBox.create();
     }
 
 
@@ -172,28 +166,39 @@ public class MainActivity extends AppCompatActivity {
         handler.execute();
     }
 
-    private class OkHttpHandler extends AsyncTask<Void, Void, Void> {
+    private void addImageView(View v){
+        pagerSize = adapter.addView(v);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class OkHttpHandler extends AsyncTask<Void, Void, String> {
 
         MediaType mediaType;
         File imageFile;
+
         okhttp3.Response response;
         String json;
+        JSONObject obj = null;
+        JSONProcessor processor;
+        @SuppressLint("StaticFieldLeak")
+        ImageView view;
 
         OkHttpHandler(MediaType newType, File newFile) {
             super();
             mediaType = newType;
             imageFile = newFile;
-
+            Log.e("Filename:", imageFile.getName()); // Test code for testing
+            Log.e("Media type:", mediaType.subtype());
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            client = new OkHttpClient();
+        protected String doInBackground(Void... voids) {
+            OkHttpClient client = new OkHttpClient();
             RequestBody body = RequestBody.create(mediaType, imageFile);
             okhttp3.Request request = new okhttp3.Request.Builder()
                     .url("http://34.237.62.217/evaluation")
                     .post(body)
-                    .addHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
+                    .addHeader("content-type", "multipart/form-data")
                     .addHeader("cache-control", "no-cache")
                     .build();
             try {
@@ -201,18 +206,17 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return null;
+
+            Log.e("Response:", response.toString());
+            return response.toString();
         }
 
         @Override
-        protected void onPostExecute(Void v) {
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
             try {
-                json = response.body().string();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                obj = new JSONObject(json);
+                obj = new JSONObject(s);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -220,11 +224,11 @@ public class MainActivity extends AppCompatActivity {
             Drawable imageDrawable = Drawable.createFromPath(imageFile.getAbsolutePath());
             processor = new JSONProcessor(imageDrawable, context);
             try {
-                view = processor.processJSONData(obj);
+                view = processor.processJSONData(obj, layers);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            pagerSize = adapter.addView(view);
+            addImageView(view);
 
         }
 

@@ -18,7 +18,7 @@ import org.json.JSONObject;
 class JSONProcessor {
 
     private Drawable imageFile;
-    private Drawable[] layers;
+
     private Drawable foodYes;
     private Drawable foodNo;
     private Context context;
@@ -29,10 +29,10 @@ class JSONProcessor {
         context = newContext;
         foodYes = context.getResources().getDrawable( R.drawable.yes_food );
         foodNo = context.getResources().getDrawable( R.drawable.no_food );
-        layers = new Drawable[2];
+
     }
 
-    ImageView processJSONData(JSONObject input) throws JSONException {
+    ImageView processJSONData(JSONObject input, Drawable[] layers) throws JSONException {
 
         String fileName = input.getString("file_name");
         Double imageScore = input.getDouble("file_score");
