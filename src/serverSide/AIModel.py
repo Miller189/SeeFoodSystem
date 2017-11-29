@@ -1,16 +1,13 @@
-import os
 import numpy as np
-import argparse
 #import tensorflow as tf
-from PIL import Image
+
 
 """
 Class      : AIModel
 This class starts the session tensorflow model and runs the session
 """
 class AIModel:
-
-    def __init__(self, ):
+    def __init__(self):
         self.sessionModel = None
         self.x_input = None
         self.keep_prob = None

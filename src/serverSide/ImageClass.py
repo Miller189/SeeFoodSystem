@@ -1,10 +1,7 @@
 from PIL import Image
-import json
 import base64
 import os
-import argparse
 import time
-import sys
 
 """
 Class      : ImageClass
@@ -14,8 +11,8 @@ class ImageClass:
     def __init__(self, fileData):
         self.image = self.create_image_from_file(fileData)
         self.imageName = self.new_name_on_time(fileData.filename)
-        self.imageScore = None
         self.foodBoolean = None
+        self.imageScore = None
         self.fullSizedImagePathName = ""
         self.thumbnailImagePathName = ""
         self.save_full_size_image()
@@ -31,7 +28,7 @@ class ImageClass:
         fileBaseName = os.path.basename(oldName)
         currentTimeObjectMade = time.strftime("%Y%m%d-%H%M%S")
         fileBaseNameNoEx = os.path.splitext(fileBaseName)[0]
-        return (fileBaseNameNoEx + "-" + currentTimeObjectMade)
+        return (fileBaseNameNoEx + "-" + currentTimeObjectMade )
 
     """
        Method      : create_image_from_base64
@@ -62,9 +59,12 @@ class ImageClass:
     """
 
     def create_image_from_file(self, fileData):
-        image = Image.open(fileData)
-        image = image.convert('RGB')
-        return image.resize((227, 227), Image.BILINEAR)
+        try:
+            image = Image.open(fileData)
+            image = image.convert('RGB')
+            return image.resize((227, 227), Image.BILINEAR)
+        except IOError:
+            pass
 
     """
         Method      : save_full_size_image
@@ -104,7 +104,7 @@ class ImageClass:
         image.thumbnail(size)
         self.save_thumbnail(image)
 
-    #saveDataMySql
+
     """
         Method      : Getter and setters
     """
@@ -120,7 +120,7 @@ class ImageClass:
     def get_foodBoolean(self):
         return self.foodBoolean
 
-    def set_imageScore(self, score):
+    def set_imageScore(self,score):
         self.imageScore = score
 
     def set_foodBoolean(self, booleanValue):
