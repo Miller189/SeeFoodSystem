@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
 import com.android.volley.Cache;
@@ -44,6 +45,7 @@ public class StartScreen extends AppCompatActivity{
                     @Override
                     public void onResponse(String response) {
                         android.os.SystemClock.sleep(1000);
+                        Log.e("Response:", response.toString());  // Response string
                         goToMain();
                     }
                 },

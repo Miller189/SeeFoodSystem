@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -13,6 +15,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,6 +25,7 @@ import android.widget.Spinner;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -123,8 +127,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                
-
             }
         }
     }
@@ -194,12 +196,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(Void... voids) {
             OkHttpClient client = new OkHttpClient();
+
+            String filePath = imageFile.getPath();
+            Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+
+            // These methods are for experimenting with different upload types
+            String encodedFile = getStringFromBitmap(bitmap);
+            byte[] data = Base64.decode(encodedFile, Base64.DEFAULT);
+
             RequestBody body = RequestBody.create(mediaType, imageFile);
+            //RequestBody body = RequestBody.create(mediaType, encodedFile);
             okhttp3.Request request = new okhttp3.Request.Builder()
                     .url("http://34.237.62.217/evaluation")
                     .post(body)
                     .addHeader("content-type", "multipart/form-data")
-                    .addHeader("cache-control", "no-cache")
+                    //.addHeader("content-type", "application/json")
+                    //.addHeader("cache-control", "no-cache")
                     .build();
             try {
                 response = client.newCall(request).execute();
@@ -207,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            Log.e("Response:", response.toString());
+            Log.e("Response:", response.toString());  // Response string
             return response.toString();
         }
 
@@ -229,11 +241,21 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             addImageView(view);
-
         }
+    }
 
+    private String getStringFromBitmap(Bitmap bitmapPicture) {
+ /*
+ * This functions converts Bitmap picture to a string which can be
+ * JSONified.
+ * */
+        final int COMPRESSION_QUALITY = 100;
+        String encodedImage;
+        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
+        bitmapPicture.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY,
+                byteArrayBitmapStream);
+        byte[] b = byteArrayBitmapStream.toByteArray();
+        encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+        return encodedImage;
     }
 }
-
-
-
