@@ -9,7 +9,6 @@ Return      : Boolean and 1
 def create_table(dbcon , obj):
     # prepare a cursor object using cursor()
     dbcur = obj.initialize_cursor()
-
     # Create table
     sql = """CREATE TABLE GalImgCount_tbl(
              RecID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -22,6 +21,7 @@ def create_table(dbcon , obj):
             # Commit your changes in the database
             dbcon.commit()
             dbcur.close()
+
             return True
         except:
             # Rollback in case there is any error
@@ -42,8 +42,8 @@ Return      : Boolean
 """
 def insert_count_gallery_img(dbcon, LastImgRecID, obj):
     dbcur = obj.initialize_cursor()
-    sql = "INSERT INTO GalImgCount_tbl(RecID,LastImgRecID)" \
-          "VALUES (NULL,'%d')" % (LastImgRecID)
+    sql = """INSERT INTO GalImgCount_tbl(RecID,LastImgRecID) VALUES (NULL,'%d')""" % (LastImgRecID)
+
     try:
         # Execute the SQL command
         dbcur.execute(sql)
@@ -53,7 +53,6 @@ def insert_count_gallery_img(dbcon, LastImgRecID, obj):
         return True
     except:
         # Rollback in case there is any error
-        print "error!"
         dbcon.rollback()
         dbcur.close()
         return False
@@ -65,17 +64,16 @@ Return      : Data and Boolean
 """
 def read_gallery_image_counter(dbcon,obj):
     dbcur = obj.initialize_cursor()
-    sql = "SELECT LastImgRecID " \
-          "FROM GalImgCount_tbl ]" \
-          "ORDER BY RecID " \
-          "DESC LIMIT 1"
+    sql = """SELECT LastImgRecID FROM GalImgCount_tbl ORDER BY RecID DESC LIMIT 1"""
     try:
         # Execute the SQL command
         #print "inside try"
         dbcur.execute(sql)
-        result = dbcur.fetchone()
+        results = dbcur.fetchall()
+        for row in results:
+            LastRecID = int(row[0])
+            return LastRecID
         dbcur.close()
-        return result
     #TypeError as e
     except:
         # disconnect from server

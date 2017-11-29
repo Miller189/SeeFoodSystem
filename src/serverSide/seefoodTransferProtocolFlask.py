@@ -119,32 +119,28 @@ def image_evaluation():
 @app.route("/gallery",  methods=['GET'])
 def gallery():
     # extracts
-    count = request.args.get('limit')
-    objDB = SeeFoodDB()
-    dumpFile = list()
-    results = objDB.gallery_read(count)
-    if  results == False:
-        print "Errrpr in getting data"
-    else:
-        for row in results:
-            imgID = row[0]
-            imgName = row[1]
-            fullSzImgPath = row[2]
-            thumbImgPath = row[3];
-            isFood = row[4]
-            score = row[5]
-            dumpFile.append(JSON_dump_gallery(row[0],row[1],row[3],row[4],row[5]))
+    try:
+        count = request.args.get('limit')
+        objDB = SeeFoodDB()
+        dumpFile = list()
+        results = objDB.gallery_read(int(count))
+        if results == False:
+            return json.dumps({"error": "Could not get " + count + " Images"}), 404
+        else:
+            for row in results:
+                imgID = row[0]
+                imgName = row[1]
+                fullSzImgPath = row[2]
+                thumbImgPath = row[3];
+                isFood = row[4]
+                score = row[5]
+                dumpFile.append(JSON_dump_gallery(row[0],row[1],row[3],row[4],row[5]))
 
-
-    # import shutil
-    # BaseHTTPServer.send_response(200)
-    # send_header('Content-type', 'image/jpeg')
-    # end_headers()
-    # with open(content_path, 'rb') as content:
-    #     shutil.copyfileobj(content, self.wfile)
-    # objDB.close_database_connection()
-    return json.dumps(dumpFile), 200
-
+        objDB.close_database_connection()
+        return json.dumps(dumpFile), 200
+    except Exception as e:
+        objDB.close_database_connection()
+        return str(e), 404
 
 
 
@@ -196,8 +192,8 @@ def JSON_dump_gallery(imgID, imgName, imagePath, isFood, score):
     imageData = base64.b64encode(ImagebyeArrayData)
     data = []
     data.append({
-        'file_name': imgID,
-        'file_ID': imgName,
+        'file_ID': imgID,
+        'file_name': imgName,
         'data': imageData,
         'food_boolean': isFood,
         'file_score': score

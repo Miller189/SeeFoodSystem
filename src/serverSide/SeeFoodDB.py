@@ -302,9 +302,10 @@ class SeeFoodDB:
         try:
             # Execute the SQL command
             dbcur.execute(sql)
-            dbcur.close()
+
             # Fetch all the rows in a list of lists.
             results = dbcur.fetchall()
+            dbcur.close()
             return results
             # for row in results:
             #     ImgID = row[0]
@@ -335,22 +336,28 @@ class SeeFoodDB:
     """
     def gallery_read(self, count):
         GalImgCount_tbl.create_table(self.get_dbcon(),self)
+        offset = 10
+
         if self.record_count('GalImgCount_tbl') == 0:
             offset = 0
         else:
             offset = GalImgCount_tbl.read_gallery_image_counter(self.get_dbcon(),self)
-
+            if offset == False:
+                return False
 
         totalrecord = self.record_count("ImgData_tbl")
 
         if offset < totalrecord:
-
             results =  self.print_by_number_of_records(offset, count)
-
+            if results == False:
+                return False
         else:
             offset = 0
             results = self.print_by_number_of_records(offset, count)
+            if results == False:
+                return False
 
-        offset += count
-        GalImgCount_tbl.insert_count_gallery_img(self.get_dbcon(), offset, self)
+        offset += int(count)
+        if GalImgCount_tbl.insert_count_gallery_img(self.get_dbcon(), offset, self) ==False:
+            return False
         return results

@@ -9,7 +9,8 @@ obj = SeeFoodDB()
 def main():
 
     obj.delete_table("ImgData_tbl")
-
+    obj.delete_table("GalImgCount_tbl")
+    #obj.print_whole_tbl()
 
     # SeeFoodDB.stuff(ImgDataLst)
     # for x in range(1, 10):
