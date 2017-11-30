@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
 
     @Override
     public void processFinish(JSONArray output, File imageFile) {
+
         Drawable imageDrawable = Drawable.createFromPath(imageFile.getAbsolutePath());
         processor = new JSONProcessor(imageDrawable, context);
         try {
@@ -174,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         addImageView(view);
     }
 
