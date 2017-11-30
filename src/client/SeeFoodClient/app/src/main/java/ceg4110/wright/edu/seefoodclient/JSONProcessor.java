@@ -1,6 +1,8 @@
 package ceg4110.wright.edu.seefoodclient;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -29,6 +31,8 @@ class JSONProcessor {
     JSONProcessor(Drawable file, Context newContext){
         super();
         imageFile = (BitmapDrawable) file;
+        Bitmap bm = imageFile.getBitmap();
+
         context = newContext;
         foodYes = (BitmapDrawable) context.getResources().getDrawable( R.drawable.yes_food );
         foodNo = (BitmapDrawable) context.getResources().getDrawable( R.drawable.no_food );
@@ -46,12 +50,12 @@ class JSONProcessor {
         JSONObject obj = secondArray.getJSONObject(0);
         String fileName = obj.optString("file_name");
         Double imageScore = obj.optDouble("file_score");
-        Boolean foodBoolean = obj.optBoolean("food_boolean");
+        int foodBoolean = obj.optInt("food_boolean");
 
         // Create drawable layer for "food" or "not food"
-        if (foodBoolean){
+        if (foodBoolean == 1){
             layers[1] = foodYes;
-        } else {
+        } else if (foodBoolean == 0){
             layers[1] = foodNo;
         }
 
@@ -82,4 +86,12 @@ class JSONProcessor {
         imageView.setImageDrawable(ld);
         return imageView;
     }
+
+    public static Bitmap RotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
 }
+

@@ -3,7 +3,9 @@ package ceg4110.wright.edu.seefoodclient;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -24,6 +26,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -126,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 File imageFile = new File(mCurrentPhotoPath);
-
                 try {
                     uploadImage(imageFile);
                 } catch (IOException | JSONException e) {
