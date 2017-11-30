@@ -3,6 +3,7 @@ package ceg4110.wright.edu.seefoodclient;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.graphics.BitmapFactory;
@@ -16,20 +17,26 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -39,7 +46,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 
 /**
- * Created by Don Miller
+ * Created by Don Miller, Nathaniel Crossman, and Ryan Zink
  */
 
 public class MainActivity extends AppCompatActivity implements ASyncResponse{
@@ -51,12 +58,11 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
     Context context;
     int pagerSize;
     ASyncResponse asr;
-    JSONProcessor processor;
     ImageView view;
     ViewPager pager;
     JSONProcessor processor;
     JSONObject obj = null;
-    ArrayList<Bitmap> real_image = new ArrayList<Bitmap>();
+    ArrayList<Bitmap> real_image = new ArrayList<>();
 
 
     @Override
@@ -129,22 +135,6 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check which request we're responding to
-        if (requestCode == REQUEST_TAKE_PHOTO) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
-                File imageFile = new File(mCurrentPhotoPath);
-                try {
-                    uploadImage(imageFile);
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     // createImageFile() creates and names the file object for use by the camera intent
     private File createImageFile() throws IOException {
         // Create image file name
@@ -190,6 +180,71 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
     private void addImageView(View v){
         pagerSize = adapter.addView (v);
         pager.setCurrentItem (pagerSize, true);
+    }
+
+    @Override
+    protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if ((request == RESULT_LOAD_IMAGE) && (result == RESULT_OK) && (data != null) && (data.getData() != null)) {
+            System.out.println("MADE IT IN if-stat onActivityResult");
+            InputStream stream;
+            try {
+                Uri image_selected = data.getData();
+                stream = getContentResolver().openInputStream(image_selected);
+                real_image.add(BitmapFactory.decodeStream(stream));
+
+                //tests to see if image is in the bitmap --does
+                ImageView myImage = (ImageView) findViewById(R.id.view1 );
+                SharedPreferences myPrefrence = getPreferences(MODE_PRIVATE);
+                SharedPreferences.Editor editor = myPrefrence.edit();
+                for(int i = 0; i < real_image.size(); i++){
+                    myImage.setImageBitmap(real_image.get(i));
+                    editor.putString("imagePreferance", encodeToBase64(real_image.get(i)));
+                }
+                System.out.println("Image array = "+real_image.toString());
+                editor.commit();
+                Toast.makeText(MainActivity.this, "Image saved", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (request == REQUEST_TAKE_PHOTO) {
+            // Make sure the request was successful
+            if (result == RESULT_OK) {
+                File imageFile = new File(mCurrentPhotoPath);
+                try {
+                    uploadImage(imageFile);
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    //from https://stackoverflow.com/questions/37158059/selecting-an-image-from-gallery-and-to-save-it-in-android-app
+    public static String encodeToBase64(Bitmap image) {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+        byte[] b = outStream.toByteArray();
+        String imageEncoded = Base64.encodeToString(b, Base64.URL_SAFE);//***was DEFAULT
+        System.out.println("MADE IT IN encodeToBase64");
+        Log.d("Image Log:", imageEncoded);
+        return imageEncoded;
+    }
+
+    public void dispatchSelectGalleryPictureIntent(View view) {
+        //Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+
+        Intent pickPhoto = new Intent();
+        pickPhoto.setType("image/*");
+        pickPhoto.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        pickPhoto.setAction(Intent.ACTION_GET_CONTENT);
+        pickPhoto.addCategory(Intent.CATEGORY_OPENABLE);
+        //startActivityForResult(pickPhoto, RESULT_LOAD_IMAGE);
+        startActivityForResult(Intent.createChooser(pickPhoto, "Select Picture"), RESULT_LOAD_IMAGE);
+        System.out.println("MADE IT INTO dispatchSelectGalleryPictureIntent");
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,71 +316,5 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
             delegate.processFinish(output, imageFile);
         }
     }
-    @Override
-    protected void onActivityResult(int request, int result, Intent data) {
-        super.onActivityResult(request, result, data);
-        if ((request == RESULT_LOAD_IMAGE) && (result == RESULT_OK) && (data != null) && (data.getData() != null)) {
-            System.out.println("MADE IT IN if-stat onActivityResult");
-            InputStream stream;
-            try {
-                Uri image_selected = data.getData();
-                stream = getContentResolver().openInputStream(image_selected);
-                real_image.add(BitmapFactory.decodeStream(stream));
 
-                //tests to see if image is in the bitmap --does
-                ImageView myImage = (ImageView) findViewById(R.id.view1 );
-
-
-
-                SharedPreferences myPrefrence = getPreferences(MODE_PRIVATE);
-                SharedPreferences.Editor editor = myPrefrence.edit();
-                for(int i = 0; i < real_image.size(); i++){
-                    myImage.setImageBitmap(real_image.get(i));
-                    editor.putString("imagePreferance", encodeToBase64(real_image.get(i)));
-                }
-                System.out.println("Image array = "+real_image.toString());
-                editor.commit();
-                Toast.makeText(MainActivity.this, "Image saved", Toast.LENGTH_SHORT).show();
-            }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    //from https://stackoverflow.com/questions/37158059/selecting-an-image-from-gallery-and-to-save-it-in-android-app
-    public static String encodeToBase64(Bitmap image) {
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, outStream);
-        byte[] b = outStream.toByteArray();
-        String imageEncoded = Base64.encodeToString(b, Base64.URL_SAFE);//***was DEFAULT
-        System.out.println("MADE IT IN encodeToBase64");
-        Log.d("Image Log:", imageEncoded);
-        return imageEncoded;
-    }
-
-    //from https://stackoverflow.com/questions/37158059/selecting-an-image-from-gallery-and-to-save-it-in-android-app
-    public static Bitmap decodeToBase64(String input) {
-        byte[] decode = Base64.decode(input, 0);
-        System.out.println("MADE IT INTO decodeToBase64");
-        Bitmap map = BitmapFactory.decodeByteArray(decode, 0, decode.length);
-        return map;
-    }
-
-    public void dispatchSelectGalleryPictureIntent(View view) {
-        //Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-
-        Intent pickPhoto = new Intent();
-        pickPhoto.setType("image/*");
-        pickPhoto.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        pickPhoto.setAction(Intent.ACTION_GET_CONTENT);
-        pickPhoto.addCategory(Intent.CATEGORY_OPENABLE);
-        //startActivityForResult(pickPhoto, RESULT_LOAD_IMAGE);
-        startActivityForResult(Intent.createChooser(pickPhoto, "Select Picture"), RESULT_LOAD_IMAGE);
-        System.out.println("MADE IT INTO dispatchSelectGalleryPictureIntent");
-
-    }
 }

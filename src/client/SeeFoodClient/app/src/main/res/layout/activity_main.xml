@@ -20,6 +20,19 @@
 
     </android.support.v4.view.ViewPager>
 
+    <android.widget.ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/view1"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:visibility="visible"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewPager">
+    </android.widget.ImageView>
+
+
     <ImageButton
         android:id="@+id/imageButton"
         android:layout_width="150dp"
@@ -44,6 +57,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginTop="16dp"
         android:contentDescription="@string/access_gallery"
+        android:onClick="dispatchSelectGalleryPictureIntent"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

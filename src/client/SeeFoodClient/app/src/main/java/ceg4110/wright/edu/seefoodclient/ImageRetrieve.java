@@ -1,24 +1,16 @@
 package ceg4110.wright.edu.seefoodclient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.ListView;
+import android.widget.GridView;
+import android.widget.ListAdapter;
 
 import com.android.volley.Cache;
 import com.android.volley.Network;
@@ -30,17 +22,12 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.StringRequest;
-import android.widget.ListAdapter;
-import android.widget.ImageView;
-import android.widget.GridView;
 
-import java.net.URLConnection;
-import java.net.URL;
-import java.io.InputStream;
-import java.io.IOException;
-
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 
 public class ImageRetrieve extends AppCompatActivity {
@@ -67,7 +54,6 @@ public class ImageRetrieve extends AppCompatActivity {
         GridView grid = (GridView) findViewById(R.id.grid);
         grid.setAdapter(new ImageAdapterGallery(this));
 
-
         //grid.setAdapter(new ImageAdapter());
 
 
@@ -77,6 +63,8 @@ public class ImageRetrieve extends AppCompatActivity {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
+
 
     }
 
@@ -169,10 +157,10 @@ public class ImageRetrieve extends AppCompatActivity {
                 Double file_score = obj.getDouble("file_score");
                 Integer foodBoolean = obj.getInt("food_boolean");
                 image = decodeToBase64(data);
-                imId[i] = file_ID;//file_ID
-                score[i] = file_score.toString();//file_score
-                mThumbIds[i] =image ;//image
-                isFood[i] = foodBoolean.toString();//food_boolean
+//                imId[i] = file_ID;//file_ID
+//                score[i] = file_score.toString();//file_score
+//                mThumbIds[i] =image ;//image
+//                isFood[i] = foodBoolean.toString();//food_boolean
 
                 //Image(image,fileId,name,score,isfood)
                 Log.e("Gallery:", file_ID.toString());

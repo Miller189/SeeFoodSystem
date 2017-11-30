@@ -16,13 +16,17 @@ import android.view.View;
 
 import android.widget.ImageView;
 
+/**
+ * Created by Nathaniel Crossman and Ryan Zink
+ */
+
 
 public class ImageAdapterGallery extends BaseAdapter {
     private Context mContext;
-
-    Integer[] idImage ;
-    String[] score ;
-    String[] isFood ;
+//
+//    Integer[] idImage ;
+//    String[] score ;
+//    String[] isFood ;
 
 
     public ImageAdapterGallery(Context c) {
@@ -62,11 +66,8 @@ public class ImageAdapterGallery extends BaseAdapter {
             //GridMerge adapter = new GridMerge(mContext, score, mThumbIds);
             textView.setText(score[position]);
             textView2.setText(isFood[position]);
-            imageView.setImageResource(idImage[position]);
+            imageView.setImageResource(mThumbIds[position]);
 
-            //imageView.setLayoutParams(new GridView.LayoutParams(200, 200));
-            //imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            //imageView.setPadding(8, 8, 8, 8);
         } else {
             grid = (View) convertView;
         }
@@ -76,38 +77,38 @@ public class ImageAdapterGallery extends BaseAdapter {
     }
 
 
-//
-//    // references to our images
-//
-//     int[] mThumbIds = {
-//            R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher,
-//             R.drawable.ic_launcher
-//    };
-//     String[] score = {
-//            "a score",
-//             "a score",
-//             "a score",
-//             "a score",
-//             "a score",
-//             "a score",
-//             "a score",
-//             "a score"
-//    };
-//
-//    String[] isFood = {
-//            "Is Food",
-//            "No Food",
-//            "Is Food",
-//            "No Food",
-//            "Is Food",
-//            "No Food",
-//            "Is Food",
-//            "No Food"
-//    };
+
+    // references to our images
+
+     int[] mThumbIds = {
+            R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher,
+             R.drawable.ic_launcher
+    };
+     String[] score = {
+            "a score",
+             "a score",
+             "a score",
+             "a score",
+             "a score",
+             "a score",
+             "a score",
+             "a score"
+    };
+
+    String[] isFood = {
+            "Is Food",
+            "No Food",
+            "Is Food",
+            "No Food",
+            "Is Food",
+            "No Food",
+            "Is Food",
+            "No Food"
+    };
 }
