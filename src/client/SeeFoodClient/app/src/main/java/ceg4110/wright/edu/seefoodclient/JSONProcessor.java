@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.widget.ImageView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,17 +30,18 @@ class JSONProcessor {
         context = newContext;
         foodYes = context.getResources().getDrawable( R.drawable.yes_food );
         foodNo = context.getResources().getDrawable( R.drawable.no_food );
-
     }
 
-    ImageView processJSONData(JSONObject input, Drawable[] layers) throws JSONException {
-
-        String fileName = input.getString("file_name");
-        Double imageScore = input.getDouble("file_score");
-        Boolean foodBoolean = input.getBoolean("food_boolean");
+    ImageView processJSONData(JSONArray input) throws JSONException {
+        JSONArray secondArray = input.getJSONArray(0);
+        JSONObject obj = secondArray.getJSONObject(0);
+        Drawable[] layers = new Drawable[2];
+        String fileName = obj.optString("file_name");
+        Double imageScore = obj.optDouble("file_score");
+        Boolean foodBoolean = obj.optBoolean("food_boolean");
 
         ImageView imageView = new ImageView(context);
-        layers[0] = (Drawable)imageFile;
+        layers[0] = imageFile;
 
         if (foodBoolean){
             layers[1] = foodYes;
@@ -50,8 +52,5 @@ class JSONProcessor {
         Drawable layersDrawable = new LayerDrawable(layers);
         imageView.setImageDrawable(layersDrawable);
         return imageView;
-
     }
-
-
 }

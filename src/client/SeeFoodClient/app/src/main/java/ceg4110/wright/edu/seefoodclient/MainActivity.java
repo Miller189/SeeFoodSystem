@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -15,39 +13,37 @@ import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ASyncResponse{
 
     ImageAdapter adapter;
     static final int REQUEST_TAKE_PHOTO = 1;
     String mCurrentPhotoPath;
     Context context;
     int pagerSize;
-    private Drawable[] layers;
+    ASyncResponse asr;
+    JSONProcessor processor;
+    ImageView view;
+    ViewPager pager;
 
 
     @Override
@@ -56,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
         context = getApplicationContext();
         setContentView(R.layout.activity_main);
         adapter = new ImageAdapter();
-        layers = new Drawable[2];
-        ViewPager pager = (ViewPager) findViewById(R.id.viewPager);
+        asr = this;
+        pager = (ViewPager) findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
         // The process for inserting an image into the ViewPager:
         // 1. Instantiate the ImageView
@@ -68,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         startImage.setImageDrawable(myIcon);
         // 4. Add the view using the adapter's method
         addImageView(startImage);
+
         Spinner dropdown = (Spinner) findViewById(R.id.spinner);
         dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -124,9 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     uploadImage(imageFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
+                } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
             }
@@ -165,38 +160,55 @@ public class MainActivity extends AppCompatActivity {
     private void uploadImage(File imageFile) throws IOException, JSONException {
 
         MediaType mediaType = MediaType.parse("image/jpeg");
-        OkHttpHandler handler = new OkHttpHandler(mediaType, imageFile);
+        OkHttpHandler handler = new OkHttpHandler(mediaType, imageFile, asr);
 
         handler.execute();
     }
 
-    private void addImageView(View v){
-        pagerSize = adapter.addView(v);
+    @Override
+    public void processFinish(JSONArray output, File imageFile) {
+        Drawable imageDrawable = Drawable.createFromPath(imageFile.getAbsolutePath());
+        processor = new JSONProcessor(imageDrawable, context);
+        try {
+            view = processor.processJSONData(output);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        addImageView(view);
     }
+
+    private void addImageView(View v){
+        pagerSize = adapter.addView (v);
+        pager.setCurrentItem (pagerSize, true);
+    }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //BEGIN ASYNCTASK CLASS ////////////////////////////////////////////////////////////////////////
+
 
     @SuppressLint("StaticFieldLeak")
     private class OkHttpHandler extends AsyncTask<Void, Void, String> {
 
+        ASyncResponse delegate;
         MediaType mediaType;
         File imageFile;
 
         okhttp3.Response response;
-        JSONObject obj = null;
-        JSONProcessor processor;
-        @SuppressLint("StaticFieldLeak")
-        ImageView view;
+        JSONArray output = null;
 
-        OkHttpHandler(MediaType newType, File newFile) {
+        OkHttpHandler(MediaType newType, File newFile, ASyncResponse asr) {
             super();
             mediaType = newType;
             imageFile = newFile;
-            Log.e("Filename:", imageFile.getName()); // Test code for testing
-            Log.e("Media type:", mediaType.subtype());
+            delegate = asr;
         }
 
         @Override
         protected String doInBackground(Void... voids) {
             OkHttpClient client = new OkHttpClient();
+            String string = null;
 
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
@@ -215,8 +227,13 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            Log.e("Response:", response.toString());  // Response string
-            return response.toString();
+            try {
+                string = response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return string;
         }
 
         @Override
@@ -224,19 +241,13 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(s);
 
             try {
-                obj = new JSONObject(s);
+                Log.e("String", s);
+                output = new JSONArray(s);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
-            Drawable imageDrawable = Drawable.createFromPath(imageFile.getAbsolutePath());
-            processor = new JSONProcessor(imageDrawable, context);
-            try {
-                view = processor.processJSONData(obj, layers);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            addImageView(view);
+            delegate.processFinish(output, imageFile);
         }
     }
 }
