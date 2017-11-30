@@ -17,6 +17,9 @@ import java.net.URL;
 import java.io.InputStream;
 import java.io.IOException;
 
+/**
+ * Created by Ryan Zink
+ */
 
 public class ImageRetrieve extends AppCompatActivity{
 

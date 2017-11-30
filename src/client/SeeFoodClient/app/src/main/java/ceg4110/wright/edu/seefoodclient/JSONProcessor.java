@@ -13,7 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by DJ on 11/27/2017.
+ * Created by Don Miller on 11/27/2017.
  * This class does the work of adding the server's data to the image file.
  * A JSONProcessor object must be instantiated for each image processed.
  * This will allow the image to be passed to it separately from the JSON data.
@@ -22,7 +22,6 @@ import org.json.JSONObject;
 class JSONProcessor {
 
     private BitmapDrawable imageFile;
-    private BitmapDrawable score;
     private BitmapDrawable foodYes;
     private BitmapDrawable foodNo;
     private Context context;
@@ -38,24 +37,25 @@ class JSONProcessor {
     @RequiresApi(api = Build.VERSION_CODES.M)
     ImageView processJSONData(JSONArray input) throws JSONException {
 
+        // layer 0: original image | layer 1: boolean | layer 2: certainty/food score
+        Drawable[] layers = new Drawable[3];
+        layers[0] = imageFile;
+
+        // Extract data from server response object
         JSONArray secondArray = input.getJSONArray(0);
         JSONObject obj = secondArray.getJSONObject(0);
-        Drawable[] layers = new Drawable[3];  // layer 0: original image | layer 1: boolean | layer 2: certainty/food score
         String fileName = obj.optString("file_name");
         Double imageScore = obj.optDouble("file_score");
         Boolean foodBoolean = obj.optBoolean("food_boolean");
 
-        ImageView imageView = new ImageView(context);
-        layers[0] = imageFile;
-
-
+        // Create drawable layer for "food" or "not food"
         if (foodBoolean){
             layers[1] = foodYes;
         } else {
             layers[1] = foodNo;
         }
 
-        // Create certainty drawable
+        // Create and implement certainty drawable layer
         int ct = (int) Math.round(imageScore);
         String cs = Integer.toString(ct);
         String certainty = "Certainty: " + cs + "%";
@@ -65,7 +65,6 @@ class JSONProcessor {
         LayerDrawable ld = new LayerDrawable(layers);
 
         // Position the evaluated image file
-
         ld.setLayerWidth(0, 1000);
         ld.setLayerInsetBottom(0, 88);
 
@@ -79,6 +78,7 @@ class JSONProcessor {
         ld.setLayerInsetLeft(2, 100);
         ld.setLayerInsetTop(2, 400);
 
+        ImageView imageView = new ImageView(context);
         imageView.setImageDrawable(ld);
         return imageView;
     }

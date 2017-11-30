@@ -7,9 +7,14 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
+/**
+ * Created by Don Miller
+ * Shamelessly copied from https://stackoverflow.com/a/13671777
+ */
+
 
 public class ImageAdapter extends PagerAdapter {
-    // Shamelessly copied from https://stackoverflow.com/questions/13664155/dynamically-add-and-remove-view-to-viewpager
+
     // This holds all the currently displayable views, in order from left to right.
     private ArrayList<View> views = new ArrayList<>();
 
@@ -72,7 +77,7 @@ public class ImageAdapter extends PagerAdapter {
     // Add "view" to right end of "views".
     // Returns the position of the new view.
     // The app should call this to add pages; not used by ViewPager.
-    public int addView (View v)
+    int addView(View v)
     {
         return addView (v, views.size());
     }
@@ -82,7 +87,7 @@ public class ImageAdapter extends PagerAdapter {
     // Returns position of new view.
     // The app should call this to add pages; not used by ViewPager.
     // An error is thrown if notifyDataSetChanged() is not called.
-    public int addView (View v, int position)
+    private int addView(View v, int position)
     {
         views.add (position, v);
         notifyDataSetChanged();
@@ -102,7 +107,7 @@ public class ImageAdapter extends PagerAdapter {
     // Removes the "view" at "position" from "views".
     // Retuns position of removed view.
     // The app should call this to remove pages; not used by ViewPager.
-    public int removeView (ViewPager pager, int position)
+    private int removeView(ViewPager pager, int position)
     {
         // ViewPager doesn't have a delete method; the closest is to set the adapter
         // again.  When doing so, it deletes all its views.  Then we can delete the view

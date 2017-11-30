@@ -1,15 +1,16 @@
 package ceg4110.wright.edu.seefoodclient;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +34,10 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 
+/**
+ * Created by Don Miller
+ */
+
 public class MainActivity extends AppCompatActivity implements ASyncResponse{
 
     ImageAdapter adapter;
@@ -55,7 +60,9 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         asr = this;
         pager = (ViewPager) findViewById(R.id.viewPager);
         pager.setAdapter(adapter);
-        // The process for inserting an image into the ViewPager:
+
+        // The process for inserting an image into the ViewPager.
+        // This is the ur-process which I replicated throughout the project.
         // 1. Instantiate the ImageView
         ImageView startImage = new ImageView(this);
         // 2. Convert image to Drawable object
@@ -87,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         });
     }
 
+    // Camera method shamelessly adapted from official Android documentation
     public void dispatchTakePictureIntent(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -98,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                errorMessage("IOException", ex.getMessage());
+                ex.printStackTrace();
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
@@ -128,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         }
     }
 
-    // This creates and names the file pointer for use by the camera intent
+    // createImageFile() creates and names the file object for use by the camera intent
     private File createImageFile() throws IOException {
         // Create image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
@@ -144,19 +152,6 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         return image;
     }
 
-    // Message dialog for exception handling
-    protected void errorMessage(String method, String message) {
-        Log.d("EXCEPTION: " + method, message);
-
-        AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
-        messageBox.setTitle(method);
-        messageBox.setMessage(message);
-        messageBox.setCancelable(false);
-        messageBox.setNeutralButton("OK", null);
-        messageBox.create();
-    }
-
-
     private void uploadImage(File imageFile) throws IOException, JSONException {
 
         MediaType mediaType = MediaType.parse("image/jpeg");
@@ -165,6 +160,10 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         handler.execute();
     }
 
+
+    // ProcessFinish() catches the server response from the ASync thread
+    // and sends it to a JSONProcessor for addition to the central ViewPager.
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void processFinish(JSONArray output, File imageFile) {
 
@@ -175,28 +174,26 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         addImageView(view);
     }
 
+    // Method to simplify the process of adding to the ViewPager
     private void addImageView(View v){
         pagerSize = adapter.addView (v);
         pager.setCurrentItem (pagerSize, true);
     }
 
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //BEGIN ASYNCTASK CLASS ////////////////////////////////////////////////////////////////////////
+    //BEGIN PRIVATE ASYNCTASK CLASS ////////////////////////////////////////////////////////////////
 
-
+    // The ASyncTask is constructed as a private subclass to ensure that
+    // the processFinish method can always find the correct UI thread.
     @SuppressLint("StaticFieldLeak")
     private class OkHttpHandler extends AsyncTask<Void, Void, String> {
 
         ASyncResponse delegate;
         MediaType mediaType;
         File imageFile;
-
         okhttp3.Response response;
         JSONArray output = null;
 
@@ -207,8 +204,10 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
             delegate = asr;
         }
 
+        // doInBackground holds the logic for the core "upload image/receive json" functionality
         @Override
         protected String doInBackground(Void... voids) {
+
             OkHttpClient client = new OkHttpClient();
             String string = null;
 
@@ -238,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements ASyncResponse{
             return string;
         }
 
+        // Here we convert the server's response into a JSONArray which is passed back to the main thread
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);

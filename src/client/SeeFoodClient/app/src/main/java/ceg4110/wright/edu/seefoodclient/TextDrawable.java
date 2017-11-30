@@ -8,14 +8,15 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 
 /**
- * Created by DJ on 11/30/2017.
+ * Created by Don Miller on 11/30/2017.
+ * Shamelessly copied from https://stackoverflow.com/a/8831182
  */
 
 public class TextDrawable extends Drawable {
     private final String text;
     private final Paint paint;
 
-    public TextDrawable(String text) {
+    TextDrawable(String text) {
 
         this.text = text;
 
